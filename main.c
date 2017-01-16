@@ -47,12 +47,13 @@ int main(void)
 
 void initializeField()
 {
+    struct SingleField*** resultingPointer = malloc(sizeof(int*) * 8);
 	for(int x=0;x<8;x++)
 	{
 		for (int y = 0; y < 8; y++)
 		{
 			short directionsCount = 0;
-			struct SingleField*** resultingPointer = malloc(sizeof(int*) * 8);
+
 			for (int dir = 0; dir < 16; dir += 2)
 			{
 				short nextX = x + directions[dir];
@@ -64,12 +65,13 @@ void initializeField()
 			}
 			printf("\t%d", directionsCount);
 			//realloc((void *)resultingPointer,directionsCoun*sizeof(int *));
-			realloc(resultingPointer, directionsCount * sizeof(int));
+			//realloc(resultingPointer, directionsCount * sizeof(int));
 			//SingleField definieren
 			//malloc(sizeof(struct SingleField **),;
 			//resultingPointer=realloc(resultingPointer,directionsCount*sizeof(struct SingleField **));
-			struct SingleField recentField = {x,y,0,directionsCount, *resultingPointer};
+			struct SingleField recentField = {x,y,0,directionsCount};//Initialisierung erfolgt zwei Zeilen später
 			field[x][y] = memcpy(malloc(sizeof(recentField)), &recentField, sizeof(recentField));
+			field[x][y]-> FirstNeighbour = memcpy( malloc(directionsCount*sizeof(int*)), resultingPointer, directionsCount*sizeof(int*));
 		}
 		printf("\n");
 	}
@@ -89,7 +91,7 @@ bool goStep(short x, short y,short count)
 		return true;
 	}
 	printfields();
-	struct SingleField* currentField=field[x][y];
+	struct SingleField* currentField = field[x][y];
 	currentField->status = count;
 	short neighbourCount=currentField->neighbourCount;
 	short *neighbours = malloc(currentField->neighbourCount*sizeof(short));
@@ -150,7 +152,7 @@ void printfields()
         for ( short ii = 0 ; ii < 8; ii++)
         {
             printf("Feld an der Stelle X:%d Y:%d hat den Status: %d den Neigbourcount: %d und sein erster Nachbar liegt bei %d\n",
-         field[i][ii]->posX, field[i][ii]->posY, field[i][ii]->status, field[i][ii]->neighbourCount, field[i][ii->FirstNeighbour);
+         field[i][ii]->posX, field[i][ii]->posY, field[i][ii]->status, field[i][ii]->neighbourCount, field[i][ii]->FirstNeighbour);
 
         }
     }
