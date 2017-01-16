@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 struct SingleField
@@ -34,6 +35,7 @@ short directions[16]=
 void initializeField();
 bool goStep(short,short,short);
 bool isInBounds(short,short);
+void printfields();
 
 int main(void)
 {
@@ -47,27 +49,27 @@ void initializeField()
 {
 	for(int x=0;x<8;x++)
 	{
-		for(int y=0;y<8;y++)
+		for (int y = 0; y < 8; y++)
 		{
-			short directionsCount=0;
-			struct SingleField ***resultingPointer=malloc(sizeof(int*)*8);
-			for(int dir=0;dir<16;dir+=2)
+			short directionsCount = 0;
+			struct SingleField*** resultingPointer = malloc(sizeof(int*) * 8);
+			for (int dir = 0; dir < 16; dir += 2)
 			{
-				short nextX=x+directions[dir];
-				short nextY=y+directions[dir+1];
-				if(isInBounds(nextX,nextY))
+				short nextX = x + directions[dir];
+				short nextY = y + directions[dir + 1];
+				if (isInBounds(nextX, nextY))
 				{
-					resultingPointer[directionsCount++]=&field[nextX][nextY];
+					resultingPointer[directionsCount++] = &field[nextX][nextY];
 				}
 			}
-			printf("\t%d",directionsCount);
+			printf("\t%d", directionsCount);
 			//realloc((void *)resultingPointer,directionsCoun*sizeof(int *));
-			realloc(resultingPointer,directionsCount*sizeof(int));
+			realloc(resultingPointer, directionsCount * sizeof(int));
 			//SingleField definieren
 			//malloc(sizeof(struct SingleField **),;
 			//resultingPointer=realloc(resultingPointer,directionsCount*sizeof(struct SingleField **));
-			struct SingleField recentField = {x,y,0,directionsCount, *resultingPointer };
-			field[x][y] = &recentField;
+			struct SingleField recentField = {x,y,0,directionsCount, *resultingPointer};
+			field[x][y] = memcpy(malloc(sizeof(recentField)), &recentField, sizeof(recentField));
 		}
 		printf("\n");
 	}
@@ -86,6 +88,7 @@ bool goStep(short x, short y,short count)
 		field[x][y]->status = count;
 		return true;
 	}
+	printfields();
 	struct SingleField* currentField=field[x][y];
 	currentField->status = count;
 	short neighbourCount=currentField->neighbourCount;
@@ -139,3 +142,18 @@ bool goStep(short x, short y,short count)
 	currentField->status = 0;
 	return false;
 }
+
+void printfields()
+{
+    for ( int i = 0 ; i< 8 ; i ++)
+    {
+        for ( int ii = 0 ; ii < 8; ii++)
+        {
+            printf("Feld an der Stelle X:%d Y:%d hat den Status: %d den Neigbourcount: %d und sein erster Nachbar liegt bei %d\n",
+                   field[i][ii]->posX, field[i][ii]->posY, field[i][ii]->status, field[i][ii]->neighbourCount, field[i][ii]->FirstNeighbour);
+
+        }
+    }
+}
+
+

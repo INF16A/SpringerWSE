@@ -1,0 +1,5 @@
+﻿  main.c
+main.c(151): warning C4477: "printf": Die Formatzeichenfolge "%d" erfordert ein Argument vom Typ "int", das variadic-Argument "5" weist aber den Typ "SingleField **" auf.
+LINK : warning LNK4075: /INCREMENTAL wird aufgrund der Angabe von /OPT:ICF ignoriert.
+  SpringerWSE.vcxproj -> C:\Users\Fabian\Source\Repos\SpringerWSE\Release\SpringerWSE.exe
+  SpringerWSE.vcxproj -> C:\Users\Fabian\Source\Repos\SpringerWSE\Release\SpringerWSE.pdb (Full PDB)
