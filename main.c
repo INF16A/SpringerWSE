@@ -14,8 +14,8 @@ struct SingleField
 	short posY;
 	short status;
 	short neighbourCount;
-	short *FirstNeighbour;
-//	struct SingleField *neighbours[];	
+	struct SingleField **FirstNeighbour;
+//	struct SingleField *neighbours[];
 };
 
 struct SingleField *field[8][8];
@@ -25,7 +25,7 @@ short directions[16]=
 	1,-2,
 	-1,-2,
 	-1,2,
-	
+
 	2,1,
 	2,-1,
 	-2,-1,
@@ -34,7 +34,7 @@ short directions[16]=
 void initializeField();
 bool goStep(short,short,short);
 bool isInBounds(short,short);
- 
+
 int main(void)
 {
 	printf("\n");
@@ -50,7 +50,7 @@ void initializeField()
 		for(int y=0;y<8;y++)
 		{
 			short directionsCount=0;
-			struct SingleField **resultingPointer=malloc(sizeof(int*)*8);
+			struct SingleField ***resultingPointer=malloc(sizeof(int*)*8);
 			for(int dir=0;dir<16;dir+=2)
 			{
 				short nextX=x+directions[dir];
@@ -66,7 +66,8 @@ void initializeField()
 			//SingleField definieren
 			//malloc(sizeof(struct SingleField **),;
 			//resultingPointer=realloc(resultingPointer,directionsCount*sizeof(struct SingleField **));
-			struct SingleField recentField={x,y,0,directionsCount,resultingPointer };
+			struct SingleField recentField = {x,y,0,directionsCount, *resultingPointer };
+			field[x][y] = &recentField;
 		}
 		printf("\n");
 	}
@@ -90,10 +91,10 @@ bool goStep(short x, short y,short count)
 	short neighbourCount=currentField->neighbourCount;
 	short *neighbours = malloc(currentField->neighbourCount*sizeof(short));
 	short smallestAmountofNeighbours=999, smallestNeighboursIndex=0;
-	short *firstNeighbour=currentField->FirstNeighbour;
+	struct SingleField** firstNeighbour=currentField->FirstNeighbour;
 	for(short i =0; i< neighbourCount;i++)
 	{
-		struct SingleField *neighbour=firstNeighbour[i];
+		struct SingleField* neighbour= firstNeighbour[i];
 		if(neighbour->status>0)
 		{
 			neighbours[i]=0;
@@ -115,20 +116,21 @@ bool goStep(short x, short y,short count)
 		}
 	}
 
-	struct SingleField *nextField=firstNeighbour[smallestNeighboursIndex];
-	if(goStep(*nextField->posX,*nextField->posY,count+1))return true;
+	struct SingleField* nextField = (struct SingleField*) firstNeighbour[smallestNeighboursIndex];
+	if(goStep(nextField->posX, nextField->posY,count+1))return true;
 	neighbours[smallestNeighboursIndex]=0;
 
-	for(short ii=0;ii<neighbourCount;ii++)
+	for(short k =0; k <neighbourCount; k++ )
 	{
-		for(short i;i<neighbourCount;i++)
+		for(short i = 0;i<neighbourCount;i++)
 		{
 			if(!neighbours[i]){
 				continue;
 			}
 			if(smallestAmountofNeighbours==neighbours[i])
 			{
-				if(goStep(firstNeighbour[i]->posX,firstNeighbour[i]->posy,count+1)){return true;}
+				if(goStep( ((struct SingleField*)firstNeighbour[i])->posX, ( (struct SingleField*)firstNeighbour[i])->posY ,count+1))
+                    {return true;}
 				neighbours[i]=0;
 			}
 		}
