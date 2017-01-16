@@ -145,12 +145,12 @@ bool goStep(short x, short y,short count)
 
 void printfields()
 {
-    for ( int i = 0 ; i< 8 ; i ++)
+    for ( short i = 0 ; i< 8 ; i ++)
     {
-        for ( int ii = 0 ; ii < 8; ii++)
+        for ( short ii = 0 ; ii < 8; ii++)
         {
             printf("Feld an der Stelle X:%d Y:%d hat den Status: %d den Neigbourcount: %d und sein erster Nachbar liegt bei %d\n",
-                   field[i][ii]->posX, field[i][ii]->posY, field[i][ii]->status, field[i][ii]->neighbourCount, field[i][ii]->FirstNeighbour);
+         field[i][ii]->posX, field[i][ii]->posY, field[i][ii]->status, field[i][ii]->neighbourCount, field[i][ii->FirstNeighbour);
 
         }
     }
