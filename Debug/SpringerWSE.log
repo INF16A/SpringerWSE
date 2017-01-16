@@ -1,0 +1,4 @@
+﻿  main.c
+main.c(151): warning C4477: "printf": Die Formatzeichenfolge "%d" erfordert ein Argument vom Typ "int", das variadic-Argument "5" weist aber den Typ "SingleField **" auf.
+  SpringerWSE.vcxproj -> C:\Users\Fabian\Source\Repos\SpringerWSE\Debug\SpringerWSE.exe
+  SpringerWSE.vcxproj -> C:\Users\Fabian\Source\Repos\SpringerWSE\Debug\SpringerWSE.pdb (Full PDB)

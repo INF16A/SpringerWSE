@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1484569816 source:c:\users\fabian\source\repos\springerwse\main.c
+	<stdio.h>
+	<stdbool.h>
+	<stdlib.h>
+
