@@ -43,7 +43,8 @@ int main(void)
 
 	printf("RESULT:%d", goStep(0, 0, 0));
 
-	scanf("%d");
+	//
+	system("pause");
 }
 
 void initializeField()
@@ -103,20 +104,21 @@ bool goStep(short x, short y, short count)
 	}
 	printfields();
 	struct SingleField* currentField = ((struct SingleField*)field[(x + 8 * y)]);
-	currentField->status = count;
+	if (count>0)currentField->status = count;
 	short neighbourCount = currentField->neighbourCount;
 
-	//Array for sorting
+	//Array for sorting, will contain the amount of further possible fields
 	short *neighbours = (short*)malloc(currentField->neighbourCount*sizeof(short));
 	short smallestAmountofNeighbours = 999, smallestNeighboursIndex = 0;
 
 	// forwarded array, representing Index at field of currentfields's neighbours
 	short* firstNeighbour = currentField->FirstNeighbour;
+	//printf("Neighbours:");
 	for (short i = 0; i < neighbourCount; i++)
 	{
 		// forwarded neighbour
 		struct SingleField* neighbour = field[firstNeighbour[i]];
-		if (neighbour->status > 0)
+		if (neighbour->status != 0)
 		{
 			// 0 means it's not possible to jump there
 			neighbours[i] = 0;
@@ -132,15 +134,22 @@ bool goStep(short x, short y, short count)
 				neighbours[i]++;
 			}
 		}
-		if (smallestAmountofNeighbours > neighbours[i])
+		//printf(" %d ", neighbours[i]);
+		if (smallestAmountofNeighbours > neighboursNeighbourMaxCount)
 		{
-			printf("\n %d > %d", smallestAmountofNeighbours, neighbours[i]);
-			smallestAmountofNeighbours = neighbours[i];
+	//		printf("\n %d > %d", smallestAmountofNeighbours, neighbours[i]);
+			smallestAmountofNeighbours = neighboursNeighbourMaxCount;//neighbours[i];
 			smallestNeighboursIndex = i;
 		}
 	}
-
+	//printf("\nSmallestIdx: %d SmallestAmount: %d", smallestNeighboursIndex, smallestAmountofNeighbours);
+	if (smallestAmountofNeighbours == 999){
+		currentField->status = 0;
+		return false;
+	}
 	struct SingleField* nextField = field[firstNeighbour[smallestNeighboursIndex]];// firstNeighbour[smallestNeighboursIndex];
+
+	//printf("\n%2d|%2d,%2d -> %2d,%2d | %2d\n", count, x, y,nextField->posX,nextField->posY,nextField->status);
 	if (goStep(nextField->posX, nextField->posY, count + 1))return true;
 	neighbours[smallestNeighboursIndex] = 0;
 
@@ -168,6 +177,7 @@ bool goStep(short x, short y, short count)
 
 void printfields()
 {
+	system("cls");
 	printf("\n\n");
 	for (short x = -1; x < 8; x++)
 	{
