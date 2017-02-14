@@ -1,141 +1,362 @@
+// SpringerProjekt.cpp : Definiert den Einstiegspunkt für die Konsolenanwendung.
+//
+
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+#include "stdafx.h"
 
 
-struct SingleField
-{
-	/*
-	 0 = unused
-	-1 = Startfield
-	 n = jump nr.
-	*/
-	short posX;
-	short posY;
-	short status;
-	short neighbourCount;
-	struct SingleField **FirstNeighbour;
-//	struct SingleField *neighbours[];
-};
 
-struct SingleField *field[8][8];
+// count of all fields
+short fieldSize;
+// = fieldSize - 1, only for optimization
+short lastStepIndex;
 
-short directions[16]=
-{	1,2,
-	1,-2,
-	-1,-2,
-	-1,2,
+// 1D field size
+short length;
 
-	2,1,
-	2,-1,
-	-2,-1,
-	-2,1};
+//points to the begin of fields that will be used for solution finding
+short* fieldArray;
 
+//array used for heuristic step analysis
+short* neighboursArray;
+//array for heuristic level2 analysis
+short* neighboursNeighboursArray;
+
+//amount tried steps
+long tryCount;
+long backTrackCount;
+bool isBackTrack;
+//whether the user has chosen a continuous
+bool isContinuousPath;
+
+//Enum determining which directions are possible
+unsigned char* DirectionsPerField;
+
+//describes the movement of a SPRINGER in 1D
+short directions[8];
+// X- value of directions
+//const short directionsX[8] = { 1, 1, -1, -1, 2, 2, -2, -2 };
+//const short directionsY[8] = { 2, -2, -2, 2, 1, -1, -1, 1 };
+const short directionsX[8] = { 1, 2, 2, 1, -1, -2, -2, -1 };
+const short directionsY[8] = { 2, 1, -1, -2, -2, -1, 1, 2 };
+
+short firstPos;
+
+int main();
+void resortField(short);
 void initializeField();
-bool goStep(short,short,short);
-bool isInBounds(short,short);
+void disposeFields();
+void printField();
+void printChar(char);
+bool goStep(short, short);
+void startStep(short, short, bool);
+short generateStepList(short, short**);
+short generateNeighboursStepList(short);
+int main()
+{
+	/*	system("pause");
+		for (short s = 0; s < 64; s++)
+		{
+		printf("\n%d:", s);
+		printChar(DirectionsPerField[s]);
+		}*
+		system("pause");
+		startStep(0, 8, true);
+		system("pause");*/
+	//	for (int x = 0; x < 64; x++)
+	//{
+	//printf("[%d] ", x);
+	for (int i = 0; i < 65535; i++)
+	{
+		printf("%LC ", i);
+		if (i % 32 == 0)
+		{
+			printf("\n");
+		}
+		if (i % (57*32) == 0)
+		{
+			system("pause");
+		}
+	}
+	initializeField(8);
+	printf("%LC", 9822);
+	startStep(5, 8, true);
+	printf("%d %d ", tryCount, backTrackCount);
+	system("pause");
+	return 0;
+}
+void printChar(char c)
+{
+	printf("\t %3d ", c);
+	unsigned char remC = c, ctr = 0;
+	for (short s = 128; s > 0; s /= 2)
+	{
+		printf("%d", remC / s);
+		ctr += (remC / s);
+		remC = remC %s;
+	}
+	printf("\t %2d ", ctr);
+}
+void initializeField(short inputlength)
+{
+	length = inputlength;
+	fieldSize = length*length;
+	lastStepIndex = fieldSize - 1;
 
-int main(void)
+	fieldArray = malloc(fieldSize*sizeof(short));
+	neighboursArray = malloc(fieldSize*length*sizeof(short));
+	neighboursNeighboursArray = malloc(fieldSize*length*sizeof(short));
+	DirectionsPerField = malloc(fieldSize*sizeof(char));
+
+	for (short i = 0; i < length; i++)
+	{
+		directions[i] = directionsX[i] + directionsY[i] * length;
+	}
+	for (short i = 0; i < fieldSize; i++)
+	{
+		fieldArray[i] = -1;
+	}
+	for (short y = 0; y < length; y++)
+	{
+		for (short x = 0; x < length; x++)
+		{
+			DirectionsPerField[x + y*length] = 0;
+			for (short s = 0; s < 8; s++)
+			{
+				short resX = x + directionsX[s], resY = y + directionsY[s];
+				DirectionsPerField[x + y*length] |= ((-1 < resX&&resX < length) && (-1 < resY&&resY < length))*(1 << s);
+				//printf("%2d|%2d ->%2d|%2d, %d\n", x, y, resX, resY, DirectionsPerField[x + y*length] & (2 << s));
+			}
+			//	printf("\n%2d|%2d", x, y);
+			//printChar(DirectionsPerField[x + y*length]);
+		}
+
+	}
+}
+void disposeFields()
+{
+	free(fieldArray);
+}
+void printField()
 {
 	printf("\n");
-	initializeField();
-	(field[0][0])->status =-1;
-	goStep(0,0,0);
-}
-
-void initializeField()
-{
-	for(int x=0;x<8;x++)
+	for (short i = 0; i < length; i++)
 	{
-		for(int y=0;y<8;y++)
+		printf("[%2d]", i);
+		for (short ii = -1; ii < length; ii++)
 		{
-			short directionsCount=0;
-			struct SingleField ***resultingPointer=malloc(sizeof(int*)*8);
-			for(int dir=0;dir<16;dir+=2)
+			if (ii == -1)
 			{
-				short nextX=x+directions[dir];
-				short nextY=y+directions[dir+1];
-				if(isInBounds(nextX,nextY))
-				{
-					resultingPointer[directionsCount++]=&field[nextX][nextY];
-				}
+				printf("[%2d]", i);
+				continue;
 			}
-			printf("\t%d",directionsCount);
-			//realloc((void *)resultingPointer,directionsCoun*sizeof(int *));
-			realloc(resultingPointer,directionsCount*sizeof(int));
-			//SingleField definieren
-			//malloc(sizeof(struct SingleField **),;
-			//resultingPointer=realloc(resultingPointer,directionsCount*sizeof(struct SingleField **));
-			struct SingleField recentField = {x,y,0,directionsCount, *resultingPointer };
-			field[x][y] = &recentField;
+			printf(" %2d ", fieldArray[ii + i * 8]);
 		}
 		printf("\n");
 	}
 }
 
-
-bool isInBounds(short x,short y)
+void startStep(short position, short size, bool isContinuous)
 {
-	return (-1<x&&8>x&&-1<y&&8>y);
+	tryCount = 0;
+	backTrackCount = 0;
+	isBackTrack = false;
+	initializeField(size);
+	
+	//setting global value to chosen solution
+	isContinuousPath = isContinuous;
+	if (isContinuousPath){
+
+		firstPos = 0;
+		if (goStep(0, 0))
+		{
+			printField();
+			resortField(position);
+			printField();
+		}
+		else
+		{
+			puts("could not find a solution path");
+		}
+	}
+	else{
+		firstPos = position;
+		if (goStep(position, 0))
+		{
+			printField();
+		}
+		else
+		{
+			puts("could not find a solution path");
+		}
+	}
+	printf("\nTryCount: %d \n BacktrackCount: %d", tryCount,backTrackCount);
+	disposeFields();
+}
+bool goStep(short position, short ctr)
+{
+	tryCount++;
+	//printField();
+	//system("pause");
+	fieldArray[position] = ctr;
+	if (isBackTrack){
+		backTrackCount++;
+		//printf("%2d , %8d , %8d \n",ctr, tryCount, backTrackCount);
+		isBackTrack = false;
+	}
+	if (ctr == lastStepIndex)
+	{
+		fieldArray[firstPos] = -1;
+		short * stepListList = &neighboursArray[position*length];
+		short stepCtr = generateStepList(position, (stepListList));
+		if (stepCtr == 1){
+			return true;
+		}
+		fieldArray[firstPos] = 0;
+		fieldArray[position] = -1;
+		//	printf("%d", tryCount);
+		if (isBackTrack == false)
+		{
+			//	printField();
+			//		system("pause");
+		}
+		isBackTrack = true;
+		return false;
+	}
+
+	// points to position in Neigboursarray
+	short* stepList = &neighboursArray[position*length];
+	// amount of 'jumpable' adjacent fields
+	short stepsCount = generateStepList(position, stepList);
+	//array of stepsCount of stepList [0]
+	short* stepStepList = &neighboursNeighboursArray[position* length];
+
+	//max value in stepStepList
+	short currentMaxNeighboursCount = 0;
+
+	//genereate stepStepList
+	for (short i = 0; i < stepsCount; i++)
+	{
+		//get number of neighbours' adjacent fields
+		stepStepList[i] = generateNeighboursStepList(stepList[i]);
+
+		//when there's only one adjacent field, jump directly on it
+		//when there's a jumpable field with 0 neighbours, jump on it (step 62)
+		if (stepStepList[i] == 0 || stepStepList[i] == 1)
+		{
+			if (ctr != lastStepIndex - 1 && stepStepList[i] == 0){
+				fieldArray[position] = -1;
+				if (isBackTrack == false)
+				{
+					//printField();
+					//	system("pause");
+				}
+				isBackTrack = true;
+				return false;
+				//printf("FEHLER!!!");
+			}
+			if (goStep(stepList[i], ctr + 1)){
+				return true;
+			}
+			//printField();
+			stepStepList[i] = -1;
+		}
+		if (stepStepList[i] > currentMaxNeighboursCount){ currentMaxNeighboursCount = stepStepList[i]; }
+	}
+
+	currentMaxNeighboursCount++;
+	for (short currentVal = 2; currentVal < currentMaxNeighboursCount; currentVal++)
+	{
+		for (int i = 0; i < stepsCount; i++)
+		{
+			//if a field has two neighbours, it means that it has
+			if (stepStepList[i] == currentVal)
+			{
+				if (goStep(stepList[i], ctr + 1)){
+					return true;
+				}
+			}
+			//field already visited or greater currentVal
+			/*if (stepList[i] == -1)
+			{
+			continue;
+			}*/
+
+		}
+	}
+	fieldArray[position] = -1;
+	if (isBackTrack == false)
+	{
+		//	printField();
+		//	system("pause");
+	}
+	isBackTrack = true;
+	return false;
+
+}
+// returns amount of directions and saves the resulting fields in stepList[]
+short generateStepList(short pos, short* stepListRef)
+{
+	//short* stepList = &neighboursArray[pos*length];
+	short validSteps = 0;
+	for (short i = 0; i < 8; i++)
+	{
+		if ((DirectionsPerField[pos] & (1 << i)) && fieldArray[pos + directions[i]] == -1)
+		{
+			((stepListRef)[validSteps]) = (short)pos + directions[i];
+			validSteps++;
+		}
+	}
+	//*stepListRef = stepList;
+	return validSteps;
+}
+short generateNeighboursStepList(short pos)
+{
+	short validSteps = 0;
+	for (short i = 0; i < 8; i++)
+	{
+		if ((DirectionsPerField[pos] & (1 << i)) && fieldArray[pos + directions[i]] == -1)
+		{
+			validSteps++;
+		}
+	}
+	return validSteps;
+}
+bool isInBounds(short pos, short direction)
+{
+	return DirectionsPerField[pos] & direction;
 }
 
-bool goStep(short x, short y,short count)
+void printArray(short* arrayVar, short size)
 {
-	if(count == 63)
+	printf("Array: %5d", size);
+	for (short i = 0; i < size; i++)
 	{
-		field[x][y]->status = count;
-		return true;
+		printf(" %5d ", arrayVar[i]);
 	}
-	struct SingleField* currentField=field[x][y];
-	currentField->status = count;
-	short neighbourCount=currentField->neighbourCount;
-	short *neighbours = malloc(currentField->neighbourCount*sizeof(short));
-	short smallestAmountofNeighbours=999, smallestNeighboursIndex=0;
-	struct SingleField** firstNeighbour=currentField->FirstNeighbour;
-	for(short i =0; i< neighbourCount;i++)
+	printf("\n");
+}
+void printArrayL(short* arrayVar, short size, short maxL)
+{
+	system("cls");
+	printf("Array: %5d", size);
+	for (short i = 0; i < size; i++)
 	{
-		struct SingleField* neighbour= firstNeighbour[i];
-		if(neighbour->status>0)
-		{
-			neighbours[i]=0;
-			continue;
-		}
-		neighbours[i]=1;
-		short neighboursNeighbourMaxCount=neighbour->neighbourCount;
-		for( short ii=0;ii<neighboursNeighbourMaxCount;ii++)
-		{
-			if(neighbour->status)
-			{
-				neighbours[i]++;
-			}
-		}
-		if(smallestAmountofNeighbours>neighbours[i])
-		{
-			smallestAmountofNeighbours=neighbours[i];
-			smallestNeighboursIndex=i;
-		}
+		if (i%maxL == 0){ printf("\n"); }
+		printf(" %6d ", arrayVar[i]);
 	}
-
-	struct SingleField* nextField = (struct SingleField*) firstNeighbour[smallestNeighboursIndex];
-	if(goStep(nextField->posX, nextField->posY,count+1))return true;
-	neighbours[smallestNeighboursIndex]=0;
-
-	for(short k =0; k <neighbourCount; k++ )
+	printf("\n");
+}
+void resortField(short firstPos)
+{
+	fieldArray[0] = 0;
+	short stepValue = fieldArray[firstPos];
+	for (short i = 0; i < fieldSize; i++)
 	{
-		for(short i = 0;i<neighbourCount;i++)
-		{
-			if(!neighbours[i]){
-				continue;
-			}
-			if(smallestAmountofNeighbours==neighbours[i])
-			{
-				if(goStep( ((struct SingleField*)firstNeighbour[i])->posX, ( (struct SingleField*)firstNeighbour[i])->posY ,count+1))
-                    {return true;}
-				neighbours[i]=0;
-			}
-		}
-		smallestAmountofNeighbours++;
+		fieldArray[i] = (fieldArray[i] - stepValue);
+		if (fieldArray[i] < 0){ fieldArray[i] += fieldSize; }
 	}
-	currentField->status = 0;
-	return false;
 }
