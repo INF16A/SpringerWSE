@@ -38,8 +38,6 @@ unsigned char* DirectionsPerField;
 //describes the movement of a SPRINGER in 1D
 short directions[8];
 // X- value of directions
-//const short directionsX[8] = { 1, 1, -1, -1, 2, 2, -2, -2 };
-//const short directionsY[8] = { 2, -2, -2, 2, 1, -1, -1, 1 };
 const short directionsX[8] = { 1, 2, 2, 1, -1, -2, -2, -1 };
 const short directionsY[8] = { 2, 1, -1, -2, -2, -1, 1, 2 };
 
@@ -55,20 +53,9 @@ bool goStep(short, short);
 void startStep(short, short, bool);
 short generateStepList(short, short**);
 short generateNeighboursStepList(short);
+
 int main()
 {
-	/*	system("pause");
-		for (short s = 0; s < 64; s++)
-		{
-		printf("\n%d:", s);
-		printChar(DirectionsPerField[s]);
-		}*
-		system("pause");
-		startStep(0, 8, true);
-		system("pause");*/
-	//	for (int x = 0; x < 64; x++)
-	//{
-	//printf("[%d] ", x);
 	for (int i = 0; i < 65535; i++)
 	{
 		printf("%LC ", i);
@@ -128,10 +115,7 @@ void initializeField(short inputlength)
 			{
 				short resX = x + directionsX[s], resY = y + directionsY[s];
 				DirectionsPerField[x + y*length] |= ((-1 < resX&&resX < length) && (-1 < resY&&resY < length))*(1 << s);
-				//printf("%2d|%2d ->%2d|%2d, %d\n", x, y, resX, resY, DirectionsPerField[x + y*length] & (2 << s));
 			}
-			//	printf("\n%2d|%2d", x, y);
-			//printChar(DirectionsPerField[x + y*length]);
 		}
 
 	}
@@ -199,12 +183,9 @@ void startStep(short position, short size, bool isContinuous)
 bool goStep(short position, short ctr)
 {
 	tryCount++;
-	//printField();
-	//system("pause");
 	fieldArray[position] = ctr;
 	if (isBackTrack){
 		backTrackCount++;
-		//printf("%2d , %8d , %8d \n",ctr, tryCount, backTrackCount);
 		isBackTrack = false;
 	}
 	if (ctr == lastStepIndex)
@@ -217,7 +198,6 @@ bool goStep(short position, short ctr)
 		}
 		fieldArray[firstPos] = 0;
 		fieldArray[position] = -1;
-		//	printf("%d", tryCount);
 		if (isBackTrack == false)
 		{
 			//	printField();
@@ -256,12 +236,10 @@ bool goStep(short position, short ctr)
 				}
 				isBackTrack = true;
 				return false;
-				//printf("FEHLER!!!");
 			}
 			if (goStep(stepList[i], ctr + 1)){
 				return true;
 			}
-			//printField();
 			stepStepList[i] = -1;
 		}
 		if (stepStepList[i] > currentMaxNeighboursCount){ currentMaxNeighboursCount = stepStepList[i]; }
