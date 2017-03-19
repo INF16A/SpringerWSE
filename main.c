@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <time.h>
 
-//#include "stdafx.h"
+#include "stdafx.h"
 
 // count of all fields
 short fieldSize;
@@ -60,6 +60,8 @@ short generateNeighboursStepList(short);
 void scanParams();
 void selectFieldOnBoard();
 void clearScreen();
+void clearBuffer();
+void scanManualField();
 int main()
 {
 	scanParams();
@@ -68,21 +70,8 @@ int main()
 	system("pause");
 	return 0;
 }
-void printFieldWithSpringerSymbol(int pos)
+void initializeField()
 {
-	char corners[] = { 201, 187, 188, 202 };
-	/*for (int i = 0; i < fieldSize; i++)
-	{
-	printf()
-	for (int ii = 0; ii < fieldSize; ii++)
-	{
-
-	}
-	}*/
-}
-void initializeField(short inputlength)
-{
-	length = inputlength;
 	fieldSize = length*length;
 	lastStepIndex = fieldSize - 1;
 
@@ -176,9 +165,10 @@ bool goStep(short position, short ctr)
 	fieldArray[position] = ctr;
 	if (ctr == lastStepIndex)
 	{
+		if (!isContinuousPath){ return true; }
 		fieldArray[firstPos] = -1;
 		short * stepListList = &neighboursArray[position*length];
-		short stepCtr = generateStepList(position, (stepListList));
+		short stepCtr = generateStepList(position, stepListList);
 		if (stepCtr == 1){
 			return true;
 		}
@@ -309,9 +299,10 @@ void scanParams(){
 	puts("Please enter the desired field size");
 	while (true){
 		length = -1;
-		scanf("%d", length);
+		scanf("%d", &length);
 		clearBuffer();
-		if (length < 5){ puts("There is no solution existent for your desired fieldsize. Try again."); }
+		if (length < 5){ puts("There is no solution existent for your desired fieldsize. Try again."); continue; }
+		if (length < 20){ break; }
 	}
 
 	clearScreen();
@@ -329,18 +320,32 @@ void scanParams(){
 		}
 		puts("\r Invalid Input, please try again.");
 	}
-	switch (inputMethod)
-	{
-	case 1:scanParams();
-	case 2:
-	default:break;
+
+	if (inputMethod == 1){ scanManualField(); }
+	else if (inputMethod == 2){ selectFieldOnBoard(); }
+	if (inputMethod == 3){
+		firstPos = rand() % (length*length);
 	}
 }
 void scanManualField(){
 	int x = -1, y = -1;
 	while (true){
-		scanf("%c%d", x, y);
-		x -= x < 'H'&&x >= 'A' ? 'A' : 'a';
+		puts("Please enter the desired start field\nPossible input formats:\n");
+		puts("->'classic' notation e.g. A1\n");
+		puts("->2D coordinates X Y e.g. 1 2\n");
+		puts("->1D coordinates e.g. 17\n");
+		char input[8];
+		
+		for (int i = 0; i < 8; i++){
+			input[i] = 0;
+		}
+		
+		fgets(input, 6, stdin);
+		clearBuffer();
+		int idx = 0;
+		while (input[idx] == 0);
+			//scanf("%c%d", x, y);
+			x -= x < 'H'&&x >= 'A' ? 'A' : 'a';
 		y--;
 		if (-1 < x&&-1 < y && x < 8 && y < 8){
 			break;
@@ -376,7 +381,7 @@ void selectFieldOnBoard(){
 		for (int i = 0; i < length; i++)printf("%c", 205);//top frame
 		printf("%c", 188);//corner top right
 		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - curY);
-		char c = getchar(stdin);
+		char c = fgetc(stdin);
 		clearBuffer();
 		if (c == '\n'){ c = lastDir; }
 		if (c == 'w' && curY - 1>0){ curY--; }
@@ -393,6 +398,6 @@ void clearScreen(){
 #elif defined(_WIN32) || defined(_WIN64)
 	system("cls");
 #else
-	for(int i=0;i<30;i++){puts("\n");}
+	for (int i = 0; i < 30; i++){ puts("\n"); }
 #endif
 }
