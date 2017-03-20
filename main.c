@@ -25,10 +25,10 @@ short* neighboursArray;
 //array for heuristic level2 analysis
 short* neighboursNeighboursArray;
 
-//amount tried steps
+//amount of entered fields until the right path could be found
 long tryCount;
 
-//whether the user has chosen a continuous
+//defines whether the user has chosen a continuous path
 bool isContinuousPath;
 
 //Enum determining which directions are possible
@@ -64,9 +64,9 @@ void clearBuffer();
 void scanManualField();
 int main()
 {
-	scanParams();
-	initializeField(length);
-	startStep(firstPos, length, isContinuousPath);
+	scanParams();//The first function scans the User Selection for the way, the algorithm is called.
+	initializeField(length); //Then the field will be initialized in order to know, which neighbours are next to any field
+	startStep(firstPos, length, isContinuousPath);//The last function Selects the path and prints it at the end.
 	system("pause");
 	return 0;
 }
@@ -161,16 +161,16 @@ void startStep(short position, short size, bool isContinuous)
 }
 bool goStep(short position, short ctr)
 {
-	tryCount++;
-	fieldArray[position] = ctr;
+	tryCount++;//every time goStep is called, the counter of entered fields will be increased
+	fieldArray[position] = ctr;//the current field will have the value of its position in the path through the whole board
 	if (ctr == lastStepIndex)
 	{
-		if (!isContinuousPath){ return true; }
-		fieldArray[firstPos] = -1;
+		if (!isContinuousPath){ return true; }//If the path is not continuos, the last must not be a neighbour of the starting Position
+		fieldArray[firstPos] = -1;//The starting field will be set to -1 to imitate that it wasn't entered before.
 		short * stepListList = &neighboursArray[position*length];
 		short stepCtr = generateStepList(position, stepListList);
 		if (stepCtr == 1){
-			return true;
+			return true;//If the current field is the last field, it will only have one neighbour
 		}
 		fieldArray[firstPos] = 0;
 		fieldArray[position] = -1;
@@ -230,10 +230,11 @@ short generateStepList(short pos, short* stepListRef)
 	short validSteps = 0;
 	for (short i = 0; i < 8; i++)
 	{
-		if ((DirectionsPerField[pos] & (1 << i)) && fieldArray[pos + directions[i]] == -1)
+		if ((DirectionsPerField[pos] & (1 << i))/*Checks, if the end point is inside the field*/
+		    && fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
 		{
-			((stepListRef)[validSteps]) = (short)pos + directions[i];
-			validSteps++;
+			((stepListRef)[validSteps]) = (short)pos + directions[i];//writes a reference to the neighbour in the first unused Address in steplistref 
+			validSteps++;//indicates the first free position in StepListRef, also works as counter for the amount of resulting fields
 		}
 	}
 	return validSteps;
@@ -244,7 +245,8 @@ short generateNeighboursStepList(short pos)
 	short validSteps = 0;
 	for (short i = 0; i < 8; i++)
 	{
-		if ((DirectionsPerField[pos] & (1 << i)) && fieldArray[pos + directions[i]] == -1)
+		if ((DirectionsPerField[pos] & (1 << i))/*Checks, if the end point is inside the field*/
+		    && fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
 		{
 			validSteps++;
 		}
