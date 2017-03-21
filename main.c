@@ -36,6 +36,9 @@ unsigned char* DirectionsPerField;
 
 //describes the movement of a knight in 1D
 short directions[8];
+
+//inputsize
+const short inputSize = 8;
 // X- value of directions
 //const short directionsX[8] = { 1, 1, -1, -1, 2, 2, -2, -2 };
 //const short directionsY[8] = { 2, -2, -2, 2, 1, -1, -1, 1 };
@@ -65,7 +68,7 @@ void scanManualField();
 int main()
 {
 	scanParams();//The first function scans the User Selection for the way, the algorithm is called.
-	initializeField(length); //Then the field will be initialized in order to know, which neighbours are next to any field
+	
 	startStep(firstPos, length, isContinuousPath);//The last function Selects the path and prints it at the end.
 	system("pause");
 	return 0;
@@ -128,7 +131,7 @@ void printField()
 void startStep(short position, short size, bool isContinuous)
 {
 	tryCount = 0;
-	initializeField(size);
+	initializeField(); //Then the field will be initialized in order to know, which neighbours are next to any field
 
 	//setting global value to chosen solution
 	isContinuousPath = isContinuous;
@@ -161,6 +164,8 @@ void startStep(short position, short size, bool isContinuous)
 }
 bool goStep(short position, short ctr)
 {
+	printField();
+	system("pause");
 	tryCount++;//every time goStep is called, the counter of entered fields will be increased
 	fieldArray[position] = ctr;//the current field will have the value of its position in the path through the whole board
 	if (ctr == lastStepIndex)
@@ -231,7 +236,7 @@ short generateStepList(short pos, short* stepListRef)
 	for (short i = 0; i < 8; i++)
 	{
 		if ((DirectionsPerField[pos] & (1 << i))/*Checks, if the end point is inside the field*/
-		    && fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
+			&& fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
 		{
 			((stepListRef)[validSteps]) = (short)pos + directions[i];//writes a reference to the neighbour in the first unused Address in steplistref 
 			validSteps++;//indicates the first free position in StepListRef, also works as counter for the amount of resulting fields
@@ -246,7 +251,7 @@ short generateNeighboursStepList(short pos)
 	for (short i = 0; i < 8; i++)
 	{
 		if ((DirectionsPerField[pos] & (1 << i))/*Checks, if the end point is inside the field*/
-		    && fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
+			&& fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
 		{
 			validSteps++;
 		}
@@ -290,7 +295,7 @@ void scanParams(){
 	bool closedPath;
 	//choose mode
 	while (true){
-		int i = fgetc(stdin) - '0';
+		int i = getchar() - '0';
 		clearBuffer();
 		if (i == 1){ closedPath = false; break; }
 		if (i == 2){ closedPath = true; break; }
@@ -313,9 +318,10 @@ void scanParams(){
 	puts("2.Choose a field on the board");
 	puts("3.Let the computer choose by random");
 	int inputMethod = 0;
+
 	//choose input mode
 	while (true){
-		inputMethod = fgetc(stdin) - '0';
+		inputMethod = getchar() - '0';
 		clearBuffer();
 		if (0 < inputMethod&&inputMethod < 4){
 			break;
@@ -325,38 +331,105 @@ void scanParams(){
 
 	if (inputMethod == 1){ scanManualField(); }
 	else if (inputMethod == 2){ selectFieldOnBoard(); }
-	if (inputMethod == 3){
-		firstPos = rand() % (length*length);
-	}
+	if (inputMethod == 3){ firstPos = rand() % (length*length); }
 }
-void scanManualField(){
-	int x = -1, y = -1;
+bool parseClassicNotation(char input[])
+{
+	int idx = 0, x = 0, y = 0;
+	while (input[idx] == ' '&&(idx++) < inputSize);
+	if (idx >= inputSize)
+	{
+		return false;
+	}
+	if (islower(input[idx]))
+	{
+		x = input[idx++] - 'a';
+	}
+	else if (isupper(input[idx]))
+	{
+		x = input[idx++] - 'A';
+	}
+	//jump over spaces
+	while (input[idx] == ' '&& (idx++) < inputSize);
+	//read number
+	while (isdigit(input[idx]))
+	{
+		y = y * 10 + (input[idx++] - '0');
+	}
+	firstPos = y*length + x;
+	return true;
+}
+bool parseCartesianNotation(char input[])
+{
+	int x = 0, y = 0, idx = 0;
+	//jump over spaces
+	while (input[idx] == ' '&& (idx++)< inputSize);
+	if (idx >= inputSize){ return false; }
+	//read first number
+	while (isdigit(input[idx]) && idx < inputSize)
+	{
+		x = x * 10 + (input[idx++] - '0');
+	}
+	//jump over spaces
+	while (input[idx] == ' '&&(idx++) < inputSize);
+
+	if (idx >= inputSize){
+		//1D idx detected
+		if (-1 < x && x < length*length)
+		{
+			firstPos = x;
+			return true;
+		}
+		return false;
+	}
+	//read second number if it exists
+	while (isdigit(input[idx]) && idx < inputSize)
+	{
+		y = y * 10 + (input[idx++] - '0');
+	}
+	//2d idx detected
+	if (y > -1 && x > -1 && x < length&& y < length)
+	{
+		firstPos = y*length + x;
+		return true;
+	}
+	return false;
+
+}
+void scanManualField()
+{
+	clearScreen();
 	while (true){
 		puts("Please enter the desired start field\nPossible input formats:\n");
 		puts("->'classic' notation e.g. A1\n");
-		puts("->2D coordinates X Y e.g. 1 2\n");
-		puts("->1D coordinates e.g. 17\n");
-		char input[8];
-		
+		puts("->zero based 2D coordinates X Y,  e.g. 1 2\n");
+		puts("->zero based 1D coordinates e.g. 17\n");
+		int const  inputSize = 8;
+		char* input = malloc(sizeof(char)*inputSize);
 		for (int i = 0; i < 8; i++){
 			input[i] = 0;
 		}
-		
-		fgets(input, 6, stdin);
+
+		scanf("%8[^\n]s", input);
 		clearBuffer();
 		int idx = 0;
-		while (input[idx] == 0);
-			//scanf("%c%d", x, y);
-			x -= x < 'H'&&x >= 'A' ? 'A' : 'a';
-		y--;
-		if (-1 < x&&-1 < y && x < 8 && y < 8){
-			break;
+		//jump over spaces
+		while (' ' == (input[idx]) && (idx++) < inputSize);
+
+		//classic mode detected
+		if (isalpha(input[idx]) && parseClassicNotation(input))
+		{
+			return;
+		}
+		//1D or 2D mode detected
+		else if (isdigit(input[idx]) && parseCartesianNotation(input))
+		{
+			return;
 		}
 		puts("\r Invalid Input, please try again.");
-		firstPos = x*length + y;
 	}
-
 }
+
 void selectFieldOnBoard(){
 	int curX = 0, curY = length - 1;
 	char lastDir = 0;
@@ -383,14 +456,17 @@ void selectFieldOnBoard(){
 		for (int i = 0; i < length; i++)printf("%c", 205);//top frame
 		printf("%c", 188);//corner top right
 		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - curY);
-		char c = fgetc(stdin);
+		char c;
+		scanf("%c", &c);
 		clearBuffer();
 		if (c == '\n'){ c = lastDir; }
 		if (c == 'w' && curY - 1>0){ curY--; }
 		if (c == 'a' && curX - 1 > 0){ curX--; }
 		if (c == 'd' && curX + 1 < length){ curX++; }
 		if (c == 's' && curY + 1 < length){ curY++; }
-		if (c == 'q'){ firstPos = curX*length + curY; return; }
+		if (c == 'q'){
+			firstPos = curX*length + curY; return;
+		}
 		lastDir = c;
 	}
 }
