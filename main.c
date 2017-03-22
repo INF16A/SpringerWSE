@@ -68,7 +68,7 @@ void scanManualField();
 int main()
 {
 	scanParams();//The first function scans the User Selection for the way, the algorithm is called.
-	
+
 	startStep(firstPos, length, isContinuousPath);//The last function Selects the path and prints it at the end.
 	system("pause");
 	return 0;
@@ -122,7 +122,7 @@ void printField()
 				printf("[%2d]", i);
 				continue;
 			}
-			printf(" %2d ", fieldArray[ii + i * 8]);
+			printf(" %2d ", fieldArray[ii + i * length]);
 		}
 		printf("\n");
 	}
@@ -164,8 +164,7 @@ void startStep(short position, short size, bool isContinuous)
 }
 bool goStep(short position, short ctr)
 {
-	printField();
-	system("pause");
+
 	tryCount++;//every time goStep is called, the counter of entered fields will be increased
 	fieldArray[position] = ctr;//the current field will have the value of its position in the path through the whole board
 	if (ctr == lastStepIndex)
@@ -309,7 +308,16 @@ void scanParams(){
 		scanf("%d", &length);
 		clearBuffer();
 		if (length < 5){ puts("There is no solution existent for your desired fieldsize. Try again."); continue; }
-		if (length < 20){ break; }
+		if (length < 14){ break; }
+		if (length > 14){
+			char decision = 'n';
+			puts("\nSure to use such a large field?(y/n)");
+			scanf("%c", &decision);
+			clearBuffer();
+			if (decision == 'y' || decision == 'Y'){
+				break;
+			}
+		}
 	}
 
 	clearScreen();
@@ -336,7 +344,7 @@ void scanParams(){
 bool parseClassicNotation(char input[])
 {
 	int idx = 0, x = 0, y = 0;
-	while (input[idx] == ' '&&(idx++) < inputSize);
+	while (input[idx] == ' ' && (idx++) < inputSize);
 	if (idx >= inputSize)
 	{
 		return false;
@@ -350,20 +358,20 @@ bool parseClassicNotation(char input[])
 		x = input[idx++] - 'A';
 	}
 	//jump over spaces
-	while (input[idx] == ' '&& (idx++) < inputSize);
+	while (input[idx] == ' ' && (idx++) < inputSize);
 	//read number
 	while (isdigit(input[idx]))
 	{
 		y = y * 10 + (input[idx++] - '0');
 	}
-	firstPos = y*length + x;
+	firstPos = (y - 1)*length + x;
 	return true;
 }
 bool parseCartesianNotation(char input[])
 {
 	int x = 0, y = 0, idx = 0;
 	//jump over spaces
-	while (input[idx] == ' '&& (idx++)< inputSize);
+	while (input[idx] == ' ' && (idx++) < inputSize);
 	if (idx >= inputSize){ return false; }
 	//read first number
 	while (isdigit(input[idx]) && idx < inputSize)
@@ -371,7 +379,7 @@ bool parseCartesianNotation(char input[])
 		x = x * 10 + (input[idx++] - '0');
 	}
 	//jump over spaces
-	while (input[idx] == ' '&&(idx++) < inputSize);
+	while (input[idx] == ' ' && (idx++) < inputSize);
 
 	if (idx >= inputSize){
 		//1D idx detected
@@ -455,21 +463,21 @@ void selectFieldOnBoard(){
 		printf("\t\t%c", 200);//corner top left
 		for (int i = 0; i < length; i++)printf("%c", 205);//top frame
 		printf("%c", 188);//corner top right
-		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - curY);
+		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
 		char c;
 		scanf("%c", &c);
 		clearBuffer();
 		if (c == '\n'){ c = lastDir; }
-		if (c == 'w' && curY - 1>0){ curY--; }
-		if (c == 'a' && curX - 1 > 0){ curX--; }
-		if (c == 'd' && curX + 1 < length){ curX++; }
-		if (c == 's' && curY + 1 < length){ curY++; }
+		if (c == 'w' && curY > 0){ curY--; }
+		if (c == 'a' && curX > 0){ curX--; }
+		if (c == 'd' && curX < length){ curX++; }
+		if (c == 's' && curY < length){ curY++; }
 		if (c == 'q'){
 			firstPos = curX*length + curY; return;
 		}
 		lastDir = c;
+		}
 	}
-}
 void clearScreen(){
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 	system("clear");
