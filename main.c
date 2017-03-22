@@ -57,8 +57,9 @@ void initializeField();
 void disposeFields();
 void printField();
 bool goStep(short, short);
+bool isInBounds(short, short);
 void startStep(short, short, bool);
-short generateStepList(short, short**);
+short generateStepList(short, short*);
 short generateNeighboursStepList(short);
 void scanParams();
 void selectFieldOnBoard();
@@ -276,7 +277,7 @@ void resortField(short firstPos)
 	}
 }
 
-void clearBuffer(void)
+void clearBuffer()
 {
 	while (getchar() != '\n');
 }
@@ -476,8 +477,8 @@ void selectFieldOnBoard(){
 			firstPos = curX*length + curY; return;
 		}
 		lastDir = c;
-		}
 	}
+}
 void clearScreen(){
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 	system("clear");
