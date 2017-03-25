@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <time.h>
 
-#include "stdafx.h"
+//#include "stdafx.h"
 
 // count of all fields
 short fieldSize;
@@ -43,12 +43,12 @@ const short inputSize = 8;
 //const short directionsX[8] = { 1, 1, -1, -1, 2, 2, -2, -2 };
 //const short directionsY[8] = { 2, -2, -2, 2, 1, -1, -1, 1 };
 
-//movement directions in a 2d field
+//movement directions in a 2d field, only the x direction is displayed
 const short directionsX[8] = { 1, 2, 2, 1, -1, -2, -2, -1 };
 //movement directions in a 2d field
 const short directionsY[8] = { 2, 1, -1, -2, -2, -1, 1, 2 };
 
-//the selected start position
+//the selected start position, only the x direction is displayed
 short firstPos;
 
 int main();
@@ -76,6 +76,7 @@ int main()
 }
 void initializeField()
 {
+    //initializes the used Memory for the field and for the Neighbour Arrays
 	fieldSize = length*length;
 	lastStepIndex = fieldSize - 1;
 
@@ -238,7 +239,7 @@ short generateStepList(short pos, short* stepListRef)
 		if ((DirectionsPerField[pos] & (1 << i))/*Checks, if the end point is inside the field*/
 			&& fieldArray[pos + directions[i]] == -1)//If the field was already entered, this will return false, because the fields are initialized with -1
 		{
-			((stepListRef)[validSteps]) = (short)pos + directions[i];//writes a reference to the neighbour in the first unused Address in steplistref 
+			((stepListRef)[validSteps]) = (short)pos + directions[i];//writes a reference to the neighbour in the first unused Address in steplistref
 			validSteps++;//indicates the first free position in StepListRef, also works as counter for the amount of resulting fields
 		}
 	}
@@ -305,18 +306,18 @@ void scanParams(){
 	clearScreen();
 	puts("Please enter the desired field size");
 	while (true){
-		length = -1;
-		scanf("%d", &length);
+		length = -1;//Sets the Value of length to -1 at the Beginning of the loop to guarantee
+		scanf("%hd", &length);
 		clearBuffer();
-		if (length < 5){ puts("There is no solution existent for your desired fieldsize. Try again."); continue; }
+		if (length < 5){ puts("There is no solution existent for your desired Field Size. Try again."); continue; }
 		if (length < 14){ break; }
 		if (length > 14){
 			char decision = 'n';
-			puts("\nSure to use such a large field?(y/n)");
-			scanf("%c", &decision);
+			puts("\nSure to use such a large field?(y/n)");//Warns the user, that it may take almost forever to find a Solution
+			scanf("%c", &decision);//reads the user's decision into the decision char; everything after the first character will be ignored.
 			clearBuffer();
 			if (decision == 'y' || decision == 'Y'){
-				break;
+				break;//It will only break the loop, if the User types Y or y
 			}
 		}
 	}
@@ -332,7 +333,7 @@ void scanParams(){
 	while (true){
 		inputMethod = getchar() - '0';
 		clearBuffer();
-		if (0 < inputMethod&&inputMethod < 4){
+		if (0 < inputMethod&&inputMethod < 4){//Checks, if the user has typed a value between 0 and 4 otherwise it will ask the user for his value again.
 			break;
 		}
 		puts("\r Invalid Input, please try again.");
@@ -342,21 +343,21 @@ void scanParams(){
 	else if (inputMethod == 2){ selectFieldOnBoard(); }
 	if (inputMethod == 3){ firstPos = rand() % (length*length); }
 }
-bool parseClassicNotation(char input[])
+bool parseClassicNotation(char input[])//This function is used to turn the Classic Chess Style Notation into a single value field Index
 {
 	int idx = 0, x = 0, y = 0;
-	while (input[idx] == ' ' && (idx++) < inputSize);
+	while (input[idx] == ' ' && (idx++) < inputSize);//jumps through the Whitespaces, up to the first digit or until the length of the input String is reached
 	if (idx >= inputSize)
 	{
-		return false;
+		return false;//If there was no letter that differed from whitespaces, this function will return the error Value false
 	}
-	if (islower(input[idx]))
+	if (islower(input[idx]))//double if block to determine if the letter at position idx is lower or upper
 	{
-		x = input[idx++] - 'a';
+		x = input[idx++] - 'a';//if the letter is lower a will be subtracted and x will be the letter's index in the alphabet (a=0; b=1; etc.).
 	}
 	else if (isupper(input[idx]))
 	{
-		x = input[idx++] - 'A';
+		x = input[idx++] - 'A';//if the letter is upper a will be subtracted and x will be the letter's index in the alphabet (A=0; B=1; etc.).
 	}
 	//jump over spaces
 	while (input[idx] == ' ' && (idx++) < inputSize);
@@ -439,7 +440,8 @@ void scanManualField()
 	}
 }
 
-void selectFieldOnBoard(){
+void selectFieldOnBoard() //This function is used for the interactive Selection of the Starting point
+{
 	int curX = 0, curY = length - 1;
 	char lastDir = 0;
 	while (true)
@@ -448,16 +450,18 @@ void selectFieldOnBoard(){
 		puts("Select the startpoint\n");
 		puts("Use w (up), a (left),  s(right), d(down) for moving. Press enter after every input\n");
 		puts("Use q to confirm selection\n");
+		//Prints everything, that is displayed on top of the interactive field
 		printf("\t\t%c", 201);//corner top left
 		for (int i = 0; i < length; i++)printf("%c", 205);//top frame
 		printf("%c\n", 187);//corner top right
+		//Prints all the fields now, this is a two dimensional loop
 		for (int y = 0; y < length; y++)
 		{
 			printf("\t\t%c", 186);//left border
 			for (int x = 0; x < length; x++)
 			{
 				if (x == curX&&y == curY){ printf("%c", 2); continue; }
-				printf("%c", ((x + y*(length + 1)) & 1) ? 176 : 178);
+				printf("%c", ((x + y*(length + 1)) & 1) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
 			}
 			printf("%c\n", 186);//right border
 		}
@@ -466,7 +470,7 @@ void selectFieldOnBoard(){
 		printf("%c", 188);//corner top right
 		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
 		char c;
-		scanf("%c", &c);
+		scanf("%c", &c);//scans the User input, if he wants to go upwards downwards etc. or if he wants to quit.
 		clearBuffer();
 		if (c == '\n'){ c = lastDir; }
 		if (c == 'w' && curY > 0){ curY--; }
@@ -474,9 +478,10 @@ void selectFieldOnBoard(){
 		if (c == 'd' && curX < length){ curX++; }
 		if (c == 's' && curY < length){ curY++; }
 		if (c == 'q'){
-			firstPos = curX*length + curY; return;
+			firstPos = curX*length + curY; return;//quits the whole input procedure and saves the currently highlighted field as starting point for the algorithm.
 		}
-		lastDir = c;
+		//every wrong input will return in nothing to change
+		lastDir = c; //at the end of the loop lastDir will be overwritten with the index of the Current field
 	}
 }
 void clearScreen(){

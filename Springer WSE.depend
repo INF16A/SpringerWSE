@@ -4,3 +4,10 @@
 	<stdbool.h>
 	<stdlib.h>
 
+1490482202 source:c:\users\fabian\clionprojects\springerwse\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdbool.h>
+	<ctype.h>
+	<time.h>
+
