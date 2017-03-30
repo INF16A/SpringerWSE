@@ -124,22 +124,28 @@ void initializeField()
 }
 void disposeFields()
 {
-	free(fieldArray);
+	free(fieldArray);//deletes the current fieldArray from the Memory
 }
 void printField()
 {
+	//Print the fields in a table view
+	printf("\n    ");//Prints the Whitespace Head of the Table
+	for(int i = 0; i < length; i++)
+	{
+		printf("[%2d]",i);//Print the X-Axis on top of the Grid
+	}
 	printf("\n");
 	for (short i = 0; i < length; i++)
 	{
-		printf("[%2d]", i);
+//		printf("[%2d]", i);
 		for (short ii = -1; ii < length; ii++)
 		{
-			if (ii == -1)
+			if (ii == -1)//The left most Character: These numbers will go from 0 to length and represent the Y-Axis at the left side of the printed Grid.
 			{
 				printf("[%2d]", i);
 				continue;
 			}
-			printf(" %2d ", fieldArray[ii + i * length]);
+			printf(" %2d ", fieldArray[ii + i * length]);//Print the value of each field from the top left to bottom right
 		}
 		printf("\n");
 	}
@@ -147,7 +153,8 @@ void printField()
 
 void startStep(short position, short size, bool isContinuous)
 {
-	tryCount = 0;
+	//This function is used to startup the Algorithm, it also launches the Recursion by calling goStep.
+	tryCount = 0;//Tries Will be intialized with 0 and then increment with every goStep call.
 	initializeField(); //Then the field will be initialized in order to know, which neighbours are next to any field
 
 	//setting global value to chosen solution
@@ -437,7 +444,7 @@ void scanManualField()
 		puts("->'classic' notation e.g. A1\n");
 		puts("->zero based 2D coordinates X Y,  e.g. 1 2\n");
 		puts("->zero based 1D coordinates e.g. 17\n");
-		int const  inputSize = 8;
+//		int const  inputSize = 8;
 		char* input = malloc(sizeof(char)*inputSize);
 		for (int i = 0; i < 8; i++){
 			input[i] = 0;
@@ -452,14 +459,14 @@ void scanManualField()
 		//classic mode detected
 		if (isalpha(input[idx]) && parseClassicNotation(input))
 		{
-			return;
+			return; // breaks the loop and the function beacause the Input has been successfully parsed.
 		}
 		//1D or 2D mode detected
 		else if (isdigit(input[idx]) && parseCartesianNotation(input))
 		{
-			return;
+			return;// breaks the loop and ends the function beacause the Input has been successfully parsed.
 		}
-		puts("\r Invalid Input, please try again.");
+		puts("\r Invalid Input, please try again.");//Error Warning to the User. The Loop will start again.
 	}
 }
 
@@ -508,11 +515,13 @@ void selectFieldOnBoard() //This function is used for the interactive Selection 
 	}
 }
 void clearScreen(){
+//Used to clear the screen in dependence of the Operating System. The selection of the right clear mode depends on the compiler.
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-	system("clear");
+	system("clear"); // the Standard command on a unix based OS to clear the screen
 #elif defined(_WIN32) || defined(_WIN64)
-	system("cls");
+	system("cls"); //the Windows command to clear the screen
 #else
-	for (int i = 0; i < 30; i++){ puts("\n"); }
+	for (int i = 0; i < 30; i++){ puts("\n"); } //The alternative. It will be used, if the upper defines do not exist.
 #endif
 }
+
