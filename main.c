@@ -66,12 +66,13 @@ void selectFieldOnBoard();
 void clearScreen();
 void clearBuffer();
 void scanManualField();
+
 int main()
 {
 	scanParams();//The first function scans the User Selection for the way, the algorithm is called.
 
 	startStep(firstPos, length, isContinuousPath);//The last function Selects the path and prints it at the end.
-	system("pause");
+	system("pause");//keeps the commmand prompt window alive at the end of the program.
 	return 0;
 }
 void initializeField()
@@ -88,20 +89,34 @@ void initializeField()
 	for (short i = 0; i < length; i++)
 	{
 		directions[i] = directionsX[i] + directionsY[i] * length;
+		/*The two dimensional jump directions (eg. 2 up, 1 right will be changed to the one-dimensional direction (-2*length)+1 ) is set by this sum.
+		It is realized by multiplying the y-Direction by length and adding the x-Direction afterwards.
+		The reason for this solution is the problem, that a changed y-Coordinate will result in a Change of a complete row.
+		So for every y-Change the length of one row has to be added or subtracted. */
 	}
 	for (short i = 0; i < fieldSize; i++)
 	{
-		fieldArray[i] = -1;
+		fieldArray[i] = -1;//every field will be initialized with -1 --> this is a value for a not-entered field
 	}
 	for (short y = 0; y < length; y++)
+		/*This double loop generates the DirectionsPerField for every field. It is used to determine, where a neighbour can be and to
+		exclude all jumps which would leave the field.*/
 	{
 		for (short x = 0; x < length; x++)
 		{
 			DirectionsPerField[x + y*length] = 0;
 			for (short s = 0; s < 8; s++)
 			{
+				/*resX and resY are the Coordinates of the Neighbour, that would be hit by this jump.
+				To generate all Coordinates, this loop iterates through all possible directions.*/
 				short resX = x + directionsX[s], resY = y + directionsY[s];
-				DirectionsPerField[x + y*length] |= ((-1 < resX&&resX < length) && (-1 < resY&&resY < length))*(1 << s);
+				DirectionsPerField[x + y*length] |= ((/*checks if resX is inside the field*/-1 < resX&&resX < length)
+													 && (/*checks if resY is inside the field*/-1 < resY&&resY < length))
+				/*Now puts the compare value (1 or 0)*/ *(1 << s); /*at the bit at the position s by multiplying them.
+				This value will be or-compared with the current DirectionsPerField-Value.
+				If the comparison is true, there is a neighbour at this Position and it will result with a 1 at the bit
+				with the index s of the DirectionsPerField[x+y*length] variable.NOTE: because of the initial value of
+				DirectionsPerField, the  Resulting Value will only depend */
 			}
 		}
 
@@ -139,34 +154,35 @@ void startStep(short position, short size, bool isContinuous)
 	isContinuousPath = isContinuous;
 	if (isContinuousPath){
 
-		firstPos = 0;
-		if (goStep(0, 0))
+		firstPos = 0;//The Algorithm for a continuos path always starts at the first field of the Array. The starting point will be edited for the display at the End.
+		if (goStep(0, 0))//if the recursive call of go step ends successfully, it will return true, and the path is ready to be printed.
 		{
-			resortField(position);
-			printField();
+			resortField(position);//resorts the field to change the starting position from 0 0 to the user selected starting point.
+			printField();//Shows the path in a simple way on the screen
 		}
 		else
 		{
-			puts("could not find a solution path");
+			puts("could not find a solution path");//Error mode, goStep has failed
 		}
 	}
 	else{
-		firstPos = position;
-		if (goStep(position, 0))
+		firstPos = position;//In the open path solution the algorithm starts at the field selected by the user.
+		if (goStep(position, 0))//if the recursive call of go step ends successfully, it will return true, and the path is ready to be printed.
 		{
-			printField();
+			printField();//Shows the path in a simple way on the screen
 		}
 		else
 		{
-			puts("could not find a solution path");
+			puts("could not find a solution path");//Error mode, goStep has failed
 		}
 	}
-	printf("\nTryCount: %d \n ", tryCount);
-	disposeFields();
+	printf("\nTryCount: %d \n ", tryCount);//returns the amount af fields, that have been entered by the algorithm until goStep ended.
+	disposeFields();// frees the memory again, it won't be needed any more!
 }
 bool goStep(short position, short ctr)
 {
-
+	/*This is the mainly used function to create the Solution Path for the Knight.
+	It is a recursive function with a maximum call stack size of fieldsize minus 1*/
 	tryCount++;//every time goStep is called, the counter of entered fields will be increased
 	fieldArray[position] = ctr;//the current field will have the value of its position in the path through the whole board
 	if (ctr == lastStepIndex)
@@ -283,12 +299,6 @@ void clearBuffer()
 	while (getchar() != '\n');
 }
 void scanParams(){
-	/*
-	TBD:
-	1. closed/open
-	2. size
-	3. input method
-	*/
 	puts("\nWelcome to the Knight Problem Solver, made by Employees of WITTENSTEIN SE Company.\n");
 	puts("This is the main menu. You can choose between following options:\nNote: Always press Enter twice.\n");
 	puts("1. Solution with an open path...\n");
@@ -338,10 +348,23 @@ void scanParams(){
 		}
 		puts("\r Invalid Input, please try again.");
 	}
-
-	if (inputMethod == 1){ scanManualField(); }
-	else if (inputMethod == 2){ selectFieldOnBoard(); }
-	if (inputMethod == 3){ firstPos = rand() % (length*length); }
+	
+	switch(inputMethod)//defines, which mode for selection is used, in dependence of the user input before. Returns and not breaks in any switch case, because in this function nothing follows after the function call.
+	{
+		case 1:
+			scanManualField();//Call manual command line input function
+			return;
+		case 2:
+			selectFieldOnBoard();//Call semi-graphical input function
+			return;
+		case 3:
+			srand(time(NULL));//Generate new random Seed by time
+			firstPos = rand() % (length*length);//defines the startingfield by random
+			return;
+	}
+//	if (inputMethod == 1){ scanManualField(); }
+//	else if (inputMethod == 2){ selectFieldOnBoard(); }
+//	if (inputMethod == 3){ firstPos = rand() % (length*length); }
 }
 bool parseClassicNotation(char input[])//This function is used to turn the Classic Chess Style Notation into a single value field Index
 {
@@ -353,20 +376,20 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
 	}
 	if (islower(input[idx]))//double if block to determine if the letter at position idx is lower or upper
 	{
-		x = input[idx++] - 'a';//if the letter is lower a will be subtracted and x will be the letter's index in the alphabet (a=0; b=1; etc.).
+		x = input[idx++] - 'a';//if the letter is lower, a will be subtracted and x will be the letter's index in the alphabet (a=0; b=1; etc.).
 	}
 	else if (isupper(input[idx]))
 	{
-		x = input[idx++] - 'A';//if the letter is upper a will be subtracted and x will be the letter's index in the alphabet (A=0; B=1; etc.).
+		x = input[idx++] - 'A';//if the letter is upper, A will be subtracted and x will be the letter's index in the alphabet (A=0; B=1; etc.).
 	}
 	//jump over spaces
 	while (input[idx] == ' ' && (idx++) < inputSize);
 	//read number
 	while (isdigit(input[idx]))
 	{
-		y = y * 10 + (input[idx++] - '0');
+		y = y * 10 + (input[idx++] - '0');//reads the current digit and multiplies it by 10 if another digit comes
 	}
-	firstPos = (y - 1)*length + x;
+	firstPos = (y - 1)*length + x;//The single-dimensional firstpos is calculated by multiplying y by length and adding x (in graphical mode y starts with 1, so a subtraction is needed)
 	return true;
 }
 bool parseCartesianNotation(char input[])
