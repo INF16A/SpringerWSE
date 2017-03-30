@@ -110,9 +110,10 @@ void initializeField()
 				/*resX and resY are the Coordinates of the Neighbour, that would be hit by this jump.
 				To generate all Coordinates, this loop iterates through all possible directions.*/
 				short resX = x + directionsX[s], resY = y + directionsY[s];
-				DirectionsPerField[x + y*length] |= ((/*checks if resX is inside the field*/-1 < resX&&resX < length)
-													 && (/*checks if resY is inside the field*/-1 < resY&&resY < length))
-				/*Now puts the compare value (1 or 0)*/ *(1 << s); /*at the bit at the position s by multiplying them.
+				DirectionsPerField[x + y*length] |= ((-1 < resX&&resX < length)/*checks if resX is inside the field*/
+								&& (-1 < resY&&resY < length))/*checks if resY is inside the field*/
+				 				*(1 << s);/*Now puts the compare value (1 or 0)*/
+				/*at the bit at the position s by multiplying them.
 				This value will be or-compared with the current DirectionsPerField-Value.
 				If the comparison is true, there is a neighbour at this Position and it will result with a 1 at the bit
 				with the index s of the DirectionsPerField[x+y*length] variable.NOTE: because of the initial value of
