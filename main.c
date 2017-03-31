@@ -537,13 +537,16 @@ void printSolutionOnBoard(){
                         
                         //Prints everything, that is displayed on top of the interactive field
                         printf("\t\t%c", 201);//corner top left
-                        for (int i = 0; i < length; i++)printf("%c", 205);//top frame
+                        for (short i = 0; i < length; i++)
+						{
+							printf("%c", 205);//top frame
+						}
                         printf("%c\n", 187);//corner top right
                         //Prints all the fields now, this is a two dimensional loop
-                        for (int y = 0; y < length; y++)
+                        for (short y = 0; y < length; y++)
                         {
                                    printf("\t\t%c", 186);//left border
-                                   for (int x = 0; x < length; x++)
+                                   for (short x = 0; x < length; x++)
                                    {
                                                if (x == curX&&y == curY){ printf("%c", 2); continue; }
                                                printf("%c", ((x + y*(length + 1)) & 1) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
@@ -551,7 +554,10 @@ void printSolutionOnBoard(){
                                    printf("%c\n", 186);//right border
                         }
                         printf("\t\t%c", 200);//corner top left
-                        for (int i = 0; i < length; i++)printf("%c", 205);//top frame
+                        for (short i = 0; i < length; i++)
+						{
+							printf("%c", 205);//top frame
+						}
                         printf("%c", 188);//corner top right
                         printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
                         char c;
@@ -560,7 +566,10 @@ void printSolutionOnBoard(){
                         if (c == '\n'){ c = lastDir; }
                         if (c == 'a' && CurrentStep > 0){ CurrentStep--; }
                         if (c == 'd' && CurrentStep < length){ CurrentStep++; }
-                        if (c == 'q'){ return;}//quits the  input procedure and quits the application
+                        if (c == 'q')
+						{
+							return;//quits the  input procedure and quits the application
+						}
                         //every wrong input will return in nothing to change
                         lastDir = c; //at the end of the loop lastDir will be overwritten with the index of the Current field
             }
@@ -568,7 +577,11 @@ void printSolutionOnBoard(){
 void printSolutionClassicNotation()
 {
             clearScreen();
-            if(length>25){puts("Classic notation is not supported for the selected size");return;}
+            if(length>25)//Disables classical stile Print of fields bigger than 25x25
+			{
+				puts("Classic notation is not supported for the selected size");
+				return;
+			}
             puts("Use a(previous steps) or d(next steps) to navigate\n");
             static int currentStart=0;
             int stepsToPrint=8;
