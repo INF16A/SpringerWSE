@@ -316,13 +316,23 @@ void scanParams(){
             while (true){
                         int i = getchar() - '0';
                         clearBuffer();
-                        if (i == 1){ closedPath = false; break; }
-                        if (i == 2){ closedPath = true; break; }
+                        if (i == 1)
+			{
+				closedPath = false; 
+				break;
+			}
+                        if (i == 2)
+			{
+				closedPath = true;
+				break;
+			}
                         puts("\r Invalid Input, please try again.");
             }
-
             clearScreen();
             puts("Please enter the desired field size");
+	if(closedPath)
+	{
+		puts("\nWARNING: You can try to find a solution for an uneven field size but there won\'t be one.");
             while (true){
                         length = -1;//Sets the Value of length to -1 at the Beginning of the loop to guarantee
                         scanf("%hd", &length);
@@ -397,6 +407,7 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
             {
                         y = y * 10 + (input[idx++] - '0');//reads the current digit and multiplies it by 10 if another digit comes
             }
+	if (y=0) return false;//return false, if the user has written A0 or b0 etc. --> ask the User to input again
             firstPos = (y - 1)*length + x;//The single-dimensional firstpos is calculated by multiplying y by length and adding x (in graphical mode y starts with 1, so a subtraction is needed)
             return true;
 }
