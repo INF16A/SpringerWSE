@@ -539,19 +539,9 @@ void outputControl()
 {
 	char lastInput = 'y';
 	char outputMethod = 'y';
+	char input = '\n';
 	while (true)
 	{
-		char input = '\n';
-		puts("\n");
-		scanf("%c", &input);
-		clearBuffer();
-		if (input == 'q'){ break; }
-		// enter = repeat last input
-		if (input == '\n'){ input = lastInput; }
-		else{ lastInput = input; }
-
-		// chars to change outputmethod: y x c 
-		if (input == 'y' || input == 'x' || input == 'c'){ outputMethod = input; }
 		clearScreen();
 		puts("Press y for Classic Notation, x for interactive Board and c for Number Board\n");
 		switch (outputMethod)
@@ -560,7 +550,15 @@ void outputControl()
 		case 'x':{printSolutionOnBoard(input); break; }
 		case 'c':{printField(); break; }
 		}
-
+		puts("\n");
+		scanf("%c", &input);
+		clearBuffer();
+		if (input == 'q'){ break; }
+		// enter = repeat last input
+		if (input == '\n'){ input = lastInput; }
+		else{ lastInput = input; }
+		// chars to change outputmethod: y x c 
+		if (input == 'y' || input == 'x' || input == 'c'){ outputMethod = input; }
 	}
 }
 void printSolutionOnBoard(char c){
