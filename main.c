@@ -405,6 +405,9 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
 	{
 		x = input[idx++] - 'A';//if the letter is upper, A will be subtracted and x will be the letter's index in the alphabet (A=0; B=1; etc.).
 	}
+	if (x < 0 || x > length){//ask to reenter if input is out of bounds
+		return false;
+	}
 	//jump over spaces
 	while (input[idx] == ' ' && (idx++) < inputSize);
 	//read number
@@ -412,7 +415,7 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
 	{
 		y = y * 10 + (input[idx++] - '0');//reads the current digit and multiplies it by 10 if another digit comes
 	}
-	if (y == 0){ return false; }//return false, if the user has written A0 or b0 etc. --> ask the User to input again
+	if (y == 0 || y > length){ return false; }//return false, if the user has written A0 or b0 etc. --> ask the User to input again
 	firstPos = length*(length - y) + x;//The single-dimensional firstpos is calculated by multiplying y by length and subtracting this product from the full fieldsize. At the end adding x will lead to the right field index.
 	return true;
 }
@@ -535,7 +538,7 @@ void outputControl()
 	while (true)
 	{
 		clearScreen();
-		puts("Press y for Classic Notation, x for interactive Board and c for Number Board\n");
+		puts("Press \n\ty for Classic Notation, \n\tx for interactive Board and \n\tc for Number Board\ntq for quitting\n");
 		switch (outputMethod)
 		{
 		case 'y':{printSolutionClassicNotation(input); break; }
@@ -558,6 +561,10 @@ void printSolutionOnBoard(char c){
 		return;
 	}
 	static int CurrentStep = 0;
+
+	if (c == 'a' && CurrentStep > 0){ CurrentStep--; }
+	if (c == 'd' && CurrentStep+1 < fieldSize){ CurrentStep++; }
+
 	int curX = 0, curY = length - 1;
 	for (int i = 0; i < fieldSize; i++)
 	{
@@ -568,11 +575,7 @@ void printSolutionOnBoard(char c){
 			break;
 		}
 	}
-
-	if (c == 'a' && CurrentStep > 0){ CurrentStep--; }
-	if (c == 'd' && CurrentStep < fieldSize){ CurrentStep++; }
-	puts("Use a(previous step) and d(next step) for navigating through the solution. Press enter after every input\n");
-	puts("Use q to exit\n");
+	puts("Use a(previous step) and d(next step) for navigating through the solution.\n Press enter after every input\n");
 
 	//Prints everything, that is displayed on top of the interactive field
 	printf("\t\t%c", 201);//corner top left
