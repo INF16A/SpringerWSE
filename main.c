@@ -85,7 +85,7 @@ void initializeField()
 	neighboursNeighboursArray = malloc(fieldSize*length*sizeof(short));
 	DirectionsPerField = malloc(fieldSize*sizeof(char));
 
-	for (short i = 0; i < length; i++)
+	for (short i = 0; i < 8; i++)
 	{
 		directions[i] = directionsX[i] + directionsY[i] * length;
 		/*The two dimensional jump directions (eg. 2 up, 1 right will be changed to the one-dimensional direction (-2*length)+1 ) is set by this sum.
@@ -190,8 +190,10 @@ bool goStep(short position, short ctr)
 {
 	/*This is the mainly used function to create the Solution Path for the Knight.
 	It is a recursive function with a maximum call stack size of fieldsize minus 1*/
+	
 	tryCount++;//every time goStep is called, the counter of entered fields will be increased
 	fieldArray[position] = ctr;//the current field will have the value of its position in the path through the whole board
+	printField();
 	if (ctr == lastStepIndex)
 	{
 		if (!isContinuousPath){ return true; }//If the path is not continuos, the last must not be a neighbour of the starting Position
@@ -503,14 +505,14 @@ void selectFieldOnBoard() //This function is used for the interactive Selection 
 			for (int x = 0; x < length; x++)
 			{
 				if (x == curX&&y == curY){ printf("%c", 2); continue; }
-				printf("%c", ((x + y*(length + 1)) & 1) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
+				printf("%c", ((x + y*(length + 1)) & (length/2)) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
 			}
 			printf("%c\n", 186);//right border
 		}
 		printf("\t\t%c", 200);//corner top left
 		for (int i = 0; i < length; i++)printf("%c", 205);//top frame
 		printf("%c", 188);//corner top right
-		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
+		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY - 1));
 		char c;
 		scanf("%c", &c);//scans the User input, if he wants to go upwards downwards etc. or if he wants to quit.
 		clearBuffer();
@@ -600,7 +602,7 @@ void printSolutionClassicNotation()
 	{
 		if (currentStart == fieldArray[i])
 		{
-			//	printf("%d.\t%c")
+			printf("%d.\t%c");
 		}
 	}
 }
