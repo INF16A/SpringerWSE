@@ -148,7 +148,7 @@ void printField()
 				printf("[%3d]", i);
 				continue;
 			}
-			printf(" %3d ", fieldArray[i + ii * length]);//Print the value of each field from the top left to bottom right
+			printf(" %3d ", fieldArray[ii + i* length]);//Print the value of each field from the top left to bottom right
 		}
 		printf("\n");
 	}
@@ -313,7 +313,6 @@ void scanParams()
 	puts("This is the main menu. You can choose between following options:\nNote: Always press Enter twice.\n");
 	puts("1. Solution with an open path...\n");
 	puts("2. Solution with a closed path...\n");
-	bool closedPath;
 	//choose mode
 	while (true){
 		char input = 0;
@@ -322,19 +321,19 @@ void scanParams()
 		int i = input - '0';
 		if (i == 1)
 		{
-			closedPath = false;
+			isContinuousPath = false;
 			break;
 		}
 		if (i == 2)
 		{
-			closedPath = true;
+			isContinuousPath = true;
 			break;
 		}
 		puts("\r Invalid Input, please try again.");
 	}
 	clearScreen();
 	puts("Please enter the desired field size");
-	if (closedPath)
+	if (isContinuousPath)
 	{
 		puts("\nNote: uneven field sizes don't have closed solutions");
 	}
@@ -414,7 +413,7 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
 		y = y * 10 + (input[idx++] - '0');//reads the current digit and multiplies it by 10 if another digit comes
 	}
 	if (y == 0){ return false; }//return false, if the user has written A0 or b0 etc. --> ask the User to input again
-	firstPos = (length - y) * length + x;//The single-dimensional firstpos is calculated by multiplying y by length and subtracting this product from the full fieldsize. At the end adding x will lead to the right field index.
+	firstPos = length*(length - y) + x;//The single-dimensional firstpos is calculated by multiplying y by length and subtracting this product from the full fieldsize. At the end adding x will lead to the right field index.
 	return true;
 }
 bool parseCartesianNotation(char input[])
@@ -564,8 +563,8 @@ void printSolutionOnBoard(char c){
 	{
 		if (fieldArray[i] == CurrentStep)
 		{
-			curX = i / length;
-			curY = i%length;
+			curX = i % length;
+			curY = i / length;
 			break;
 		}
 	}
@@ -604,9 +603,9 @@ void printSolutionOnBoard(char c){
 void printSolutionClassicNotation(char c)
 {
 	/*This function is used to print a Solution in classical style, e.g.:
-		A1-B3
-		B3-C5....
-	  The Parameter represents the user's input, he had given in the function before.*/
+	A1-B3
+	B3-C5....
+	The Parameter represents the user's input, he had given in the function before.*/
 	if (length > 25)//Disables classical stile Print of fields bigger than 25x25
 	{
 		puts("Classic notation is not supported for the selected size");
@@ -615,12 +614,12 @@ void printSolutionClassicNotation(char c)
 	puts("Use a(previous steps) or d(next steps) to navigate\n");
 	static int currentStep = 0;//currentstep as a static variable represents the current amount of steps displayed. It is initialized with 0. This means, the first time, the function is called, only the starting field will be shown.
 	if (c == 'd' //If the user input was d (show next fields)
-	    && currentStep < (fieldSize - fieldSize % 8 - 8))//and if there is room for showing eight more fields
+		&& currentStep < (fieldSize - 9))//and if there is room for showing eight more fields
 	{
 		currentStep += 8;//the currentstep will increase by 8 and the 8 next steps will be shown
 	}
 	if (c == 'a'//If the user input was d (show last fields)
-	    && currentStep >= 8)//and if the currentstep is higher than 8
+		&& currentStep >= 8)//and if the currentstep is higher than 8
 	{
 		currentStep -= 8;//the currentstep will decrease by 8 and the 8 last steps will be shown
 	}
@@ -636,8 +635,8 @@ void printSolutionClassicNotation(char c)
 					lastIndex = idx;//Now lastindex will be set. The next time the loop reaches this index, the Print will start.
 					break;
 				}
-				printf("%4d. %c%d - %c%d\n", currentStep + lines, 'A' + (lastIndex / length), (length - lastIndex%length),
-					'A' + (idx / length), (length - idx%length));//Print lastindex on the left and currentStep on the right. It has to be transferred into the classic Notation before. This causes the demand for a slightly complex printf call.
+				printf("%4d. %c%d - %c%d\n", currentStep + lines, 'A' + (lastIndex %length), (length - lastIndex / length),
+					'A' + (idx % length), (length - idx / length));//Print lastindex on the left and currentStep on the right. It has to be transferred into the classic Notation before. This causes the demand for a slightly complex printf call.
 				lastIndex = idx;//The field printed on the rightside will be printed on the leftside in the next iteration. Therefore lastindex is newly set.
 			}
 		}
