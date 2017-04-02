@@ -287,8 +287,6 @@ short generateNeighboursStepList(short pos)
 	return validSteps;
 }
 
-
-
 //checks whether it's valid to move from a field in a certain direction
 bool isInBounds(short pos, short direction)
 {
@@ -338,7 +336,7 @@ void scanParams()
 	puts("Please enter the desired field size");
 	if (closedPath)
 	{
-		puts("\nWARNING: You can try to find a solution for an uneven field size but there won\'t be one.");
+		puts("\nNote: uneven field sizes don't have closed solutions");
 	}
 
 	while (true){
@@ -555,6 +553,11 @@ void outputControl()
 }
 void printSolutionOnBoard(char c){
 
+	if (length > 25)//Disables classical stile Print of fields bigger than 25x25
+	{
+		puts("Classic notation is not supported for the selected size");
+		return;
+	}
 	static int CurrentStep = 0;
 	int curX = 0, curY = length - 1;
 	for (int i = 0; i < fieldSize; i++)
@@ -639,6 +642,3 @@ void clearScreen(){
 	for (int i = 0; i < 30; i++){ puts("\n"); } //The alternative. It will be used, if the upper defines do not exist.
 #endif
 }
-
-
-
