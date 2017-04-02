@@ -74,7 +74,6 @@ int main()
 {
 	scanParams();//The first function scans the User Selection for the way, the algorithm is called.
 	startStep(firstPos, length, isContinuousPath);//The last function Selects the path and prints it at the end.
-	system("pause");//keeps the commmand prompt window alive at the end of the program.
 	return 0;
 }
 void initializeField()
