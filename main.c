@@ -414,7 +414,7 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
 		y = y * 10 + (input[idx++] - '0');//reads the current digit and multiplies it by 10 if another digit comes
 	}
 	if (y == 0){ return false; }//return false, if the user has written A0 or b0 etc. --> ask the User to input again
-	firstPos = (y - 1)*length + x;//The single-dimensional firstpos is calculated by multiplying y by length and adding x (in graphical mode y starts with 1, so a subtraction is needed)
+	firstPos = (length - y) * length + x;//The single-dimensional firstpos is calculated by multiplying y by length and subtracting this product from the full fieldsize. At the end adding x will lead to the right field index.
 	return true;
 }
 bool parseCartesianNotation(char input[])
@@ -603,30 +603,42 @@ void printSolutionOnBoard(char c){
 }
 void printSolutionClassicNotation(char c)
 {
+	/*This function is used to print a Solution in classical style, e.g.:
+		A1-B3
+		B3-C5....
+	  The Parameter represents the user's input, he had given in the function before.*/
 	if (length > 25)//Disables classical stile Print of fields bigger than 25x25
 	{
 		puts("Classic notation is not supported for the selected size");
 		return;
 	}
 	puts("Use a(previous steps) or d(next steps) to navigate\n");
-	static int currentStep = 0;
-	if (c == 'd'&&currentStep < (fieldSize - fieldSize % 8 - 8)){ currentStep += 8; }
-	if (c == 'a'&&currentStep >= 8){ currentStep -= 8; }
-	int lastIndex = -1;
-	for (int lines = 0; lines <= ((fieldSize - currentStep>8) ? 8 : fieldSize - currentStep); lines++)
+	static int currentStep = 0;//currentstep as a static variable represents the current amount of steps displayed. It is initialized with 0. This means, the first time, the function is called, only the starting field will be shown.
+	if (c == 'd' //If the user input was d (show next fields)
+	    && currentStep < (fieldSize - fieldSize % 8 - 8))//and if there is room for showing eight more fields
 	{
-		for (int idx = 0; idx < fieldSize; idx++)
+		currentStep += 8;//the currentstep will increase by 8 and the 8 next steps will be shown
+	}
+	if (c == 'a'//If the user input was d (show last fields)
+	    && currentStep >= 8)//and if the currentstep is higher than 8
+	{
+		currentStep -= 8;//the currentstep will decrease by 8 and the 8 last steps will be shown
+	}
+	int lastIndex = -1;//Lastindex will save the position of the first field to be displayed in the Print. It always has to be set before the first print and after every print in order to show it on the left side of every line.
+	for (int lines = 0; lines <= ((fieldSize - currentStep > 8) ? 8 : fieldSize - currentStep); lines++)//Show the next eight fields starting at fieldsize; this may be one up to fieldsize but the ternary operator defines how many are shown and skips at 8.
+	{
+		for (int idx = 0; idx < fieldSize; idx++)//Inner loop that iterates through the whole field
 		{
-			if (fieldArray[idx] == currentStep + lines)
+			if (fieldArray[idx] == currentStep + lines)//If the field with the current step to be displayed is shown in the loop, this block will be called.
 			{
-				if (lastIndex == -1)
+				if (lastIndex == -1)//In the first line, there has to be searched for the lastIndex and for its successor before they can be displayed. So here is a if block to search for the lastindex and then break and at then search for the successor to display it at the end.
 				{
-					lastIndex = idx;
+					lastIndex = idx;//Now lastindex will be set. The next time the loop reaches this index, the Print will start.
 					break;
 				}
 				printf("%4d. %c%d - %c%d\n", currentStep + lines, 'A' + (lastIndex / length), (length - lastIndex%length),
-					'A' + (idx / length), (length - idx%length));
-				lastIndex = idx;
+					'A' + (idx / length), (length - idx%length));//Print lastindex on the left and currentStep on the right. It has to be transferred into the classic Notation before. This causes the demand for a slightly complex printf call.
+				lastIndex = idx;//The field printed on the rightside will be printed on the leftside in the next iteration. Therefore lastindex is newly set.
 			}
 		}
 	}
