@@ -131,7 +131,6 @@ void disposeFields()
 }
 void printField()
 {
-	clearScreen();
 	//Print the fields in a table view
 	printf("\n    ");//Prints the Whitespace Head of the Table
 	for (int i = 0; i < length; i++)
@@ -149,7 +148,7 @@ void printField()
 				printf("[%3d]", i);
 				continue;
 			}
-			printf(" %3d ", fieldArray[ii + i * length]);//Print the value of each field from the top left to bottom right
+			printf(" %3d ", fieldArray[i + ii * length]);//Print the value of each field from the top left to bottom right
 		}
 		printf("\n");
 	}
@@ -494,7 +493,6 @@ void scanManualField()
 void selectFieldOnBoard() //This function is used for the interactive Selection of the Starting point
 {
 	int curX = 0, curY = length - 1;
-	char lastDir = 0;
 	while (true)
 	{
 		clearScreen();
@@ -519,25 +517,22 @@ void selectFieldOnBoard() //This function is used for the interactive Selection 
 		printf("\t\t%c", 200);//corner top left
 		for (int i = 0; i < length; i++)printf("%c", 205);//top frame
 		printf("%c", 188);//corner top right
-		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY - 1));
+		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - curY);
 		char c;
 		scanf("%c", &c);//scans the User input, if he wants to go upwards downwards etc. or if he wants to quit.
 		clearBuffer();
-		if (c == '\n'){ c = lastDir; }
-		if (c == 'w' && curY > 0){ curY--; }
-		if (c == 'a' && curX > 0){ curX--; }
-		if (c == 'd' && curX < length){ curX++; }
-		if (c == 's' && curY < length){ curY++; }
+		if (c == 'w' && curY - 1 >= 0){ curY--; }
+		if (c == 'a' && curX - 1 >= 0){ curX--; }
+		if (c == 'd' && curX + 1 < length){ curX++; }
+		if (c == 's' && curY + 1 < length){ curY++; }
 		if (c == 'q'){
 			firstPos = curX*length + curY; return;//quits the whole input procedure and saves the currently highlighted field as starting point for the algorithm.
 		}
 		//every wrong input will return in nothing to change
-		lastDir = c; //at the end of the loop lastDir will be overwritten with the index of the Current field
 	}
 }
 void outputControl()
 {
-	char lastInput = 'y';
 	char outputMethod = 'y';
 	char input = '\n';
 	while (true)
@@ -554,9 +549,6 @@ void outputControl()
 		scanf("%c", &input);
 		clearBuffer();
 		if (input == 'q'){ break; }
-		// enter = repeat last input
-		if (input == '\n'){ input = lastInput; }
-		else{ lastInput = input; }
 		// chars to change outputmethod: y x c 
 		if (input == 'y' || input == 'x' || input == 'c'){ outputMethod = input; }
 	}
@@ -574,6 +566,7 @@ void printSolutionOnBoard(char c){
 			break;
 		}
 	}
+
 	if (c == 'a' && CurrentStep > 0){ CurrentStep--; }
 	if (c == 'd' && CurrentStep < fieldSize){ CurrentStep++; }
 	puts("Use a(previous step) and d(next step) for navigating through the solution. Press enter after every input\n");
@@ -603,7 +596,7 @@ void printSolutionOnBoard(char c){
 		printf("%c", 205);//top frame
 	}
 	printf("%c", 188);//corner top right
-	printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
+	printf("\n\tCurrent Position: %c%d", 'A' + curX, length - curY);
 }
 void printSolutionClassicNotation(char c)
 {
@@ -613,40 +606,27 @@ void printSolutionClassicNotation(char c)
 		return;
 	}
 	puts("Use a(previous steps) or d(next steps) to navigate\n");
-	static int currentStart = 0;
+	static int currentStep = 0;
+	if (c == 'd'&&currentStep < (fieldSize - fieldSize % 8 - 8)){ currentStep += 8; }
+	if (c == 'a'&&currentStep >= 8){ currentStep -= 8; }
 	int lastIndex = -1;
-	if (c == 'd'&&currentStart < (fieldSize - fieldSize % 8 - 8)){ currentStart += 8; }
-	if (c == 'a'&&currentStart >= 8){ currentStart -= 8; }
-	//print 8 steps
-	for (int stepsToPrint = 8; stepsToPrint >-1; stepsToPrint--)
+	for (int lines = 0; lines <= ((fieldSize - currentStep>8) ? 8 : fieldSize - currentStep); lines++)
 	{
-		// searches the field with the specific content
-		for (int i = 0; i < fieldSize; i++)
+		for (int idx = 0; idx < fieldSize; idx++)
 		{
-			if (fieldArray[i] == currentStart)
+			if (fieldArray[idx] == currentStep + lines)
 			{
 				if (lastIndex == -1)
 				{
-					lastIndex = i;
-					continue;
+					lastIndex = idx;
+					break;
 				}
-				//curX = i / length;
-				//curY = i%length;rp
-				printf("%4d. %c%d - %c%d\n", 1 + currentStart++, 'A' + (lastIndex / length), (1 + length - lastIndex%length),
-					'A' + (i / length), (1 + length - i%length));
-				lastIndex = i;
-				break;
+				printf("%4d. %c%d - %c%d\n", currentStep + lines, 'A' + (lastIndex / length), (length - lastIndex%length),
+					'A' + (idx / length), (length - idx%length));
+				lastIndex = idx;
 			}
 		}
 	}
-	// if there are 25 steps at maximum, currentstart should be 24
-	if (currentStart % 8 > 0){
-		currentStart -= 8 + currentStart % 8;
-	}
-	else{
-		currentStart -= 8;
-	}
-
 }
 
 void clearScreen(){
