@@ -66,6 +66,9 @@ void selectFieldOnBoard();
 void clearScreen();
 void clearBuffer();
 void scanManualField();
+void printSolutionClassicNotation(char);
+void printSolutionOnBoard(char);
+void outputControl();
 
 int main()
 {
@@ -128,11 +131,12 @@ void disposeFields()
 }
 void printField()
 {
+	clearScreen();
 	//Print the fields in a table view
 	printf("\n    ");//Prints the Whitespace Head of the Table
 	for (int i = 0; i < length; i++)
 	{
-		printf("[%2d]", i);//Print the X-Axis on top of the Grid
+		printf("[%3d]", i);//Print the X-Axis on top of the Grid
 	}
 	printf("\n");
 	for (short i = 0; i < length; i++)
@@ -142,10 +146,10 @@ void printField()
 		{
 			if (ii == -1)//The left most Character: These numbers will go from 0 to length and represent the Y-Axis at the left side of the printed Grid.
 			{
-				printf("[%2d]", i);
+				printf("[%3d]", i);
 				continue;
 			}
-			printf(" %2d ", fieldArray[ii + i * length]);//Print the value of each field from the top left to bottom right
+			printf(" %3d ", fieldArray[ii + i * length]);//Print the value of each field from the top left to bottom right
 		}
 		printf("\n");
 	}
@@ -165,7 +169,7 @@ void startStep(short position, short size, bool isContinuous)
 		if (goStep(0, 0))//if the recursive call of go step ends successfully, it will return true, and the path is ready to be printed.
 		{
 			resortField(position);//resorts the field to change the starting position from 0 0 to the user selected starting point.
-			printField();//Shows the path in a simple way on the screen
+			outputControl();//Shows the path in a simple way on the screen
 		}
 		else
 		{
@@ -176,7 +180,7 @@ void startStep(short position, short size, bool isContinuous)
 		firstPos = position;//In the open path solution the algorithm starts at the field selected by the user.
 		if (goStep(position, 0))//if the recursive call of go step ends successfully, it will return true, and the path is ready to be printed.
 		{
-			printField();//Shows the path in a simple way on the screen
+			outputControl();//Shows the path in a simple way on the screen
 		}
 		else
 		{
@@ -190,10 +194,9 @@ bool goStep(short position, short ctr)
 {
 	/*This is the mainly used function to create the Solution Path for the Knight.
 	It is a recursive function with a maximum call stack size of fieldsize minus 1*/
-	
+
 	tryCount++;//every time goStep is called, the counter of entered fields will be increased
 	fieldArray[position] = ctr;//the current field will have the value of its position in the path through the whole board
-	printField();
 	if (ctr == lastStepIndex)
 	{
 		if (!isContinuousPath){ return true; }//If the path is not continuos, the last must not be a neighbour of the starting Position
@@ -316,8 +319,10 @@ void scanParams()
 	bool closedPath;
 	//choose mode
 	while (true){
-		int i = getchar() - '0';
+		char input = 0;
+		scanf("%c", &input);
 		clearBuffer();
+		int i = input - '0';
 		if (i == 1)
 		{
 			closedPath = false;
@@ -363,8 +368,10 @@ void scanParams()
 
 	//choose input mode
 	while (true){
-		inputMethod = getchar() - '0';
+		char input = 0;
+		scanf("%c", &input);
 		clearBuffer();
+		inputMethod = input - '0';
 		if (0 < inputMethod&&inputMethod < 4){//Checks, if the user has typed a value between 0 and 4 otherwise it will ask the user for his value again.
 			break;
 		}
@@ -409,7 +416,7 @@ bool parseClassicNotation(char input[])//This function is used to turn the Class
 	{
 		y = y * 10 + (input[idx++] - '0');//reads the current digit and multiplies it by 10 if another digit comes
 	}
-	if (y = 0) return false;//return false, if the user has written A0 or b0 etc. --> ask the User to input again
+	if (y == 0){ return false; }//return false, if the user has written A0 or b0 etc. --> ask the User to input again
 	firstPos = (y - 1)*length + x;//The single-dimensional firstpos is calculated by multiplying y by length and adding x (in graphical mode y starts with 1, so a subtraction is needed)
 	return true;
 }
@@ -505,7 +512,7 @@ void selectFieldOnBoard() //This function is used for the interactive Selection 
 			for (int x = 0; x < length; x++)
 			{
 				if (x == curX&&y == curY){ printf("%c", 2); continue; }
-				printf("%c", ((x + y*(length + 1)) & (length/2)) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
+				printf("%c", (((x + y) % 2) ? 176 : 178));//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
 			}
 			printf("%c\n", 186);//right border
 		}
@@ -528,7 +535,36 @@ void selectFieldOnBoard() //This function is used for the interactive Selection 
 		lastDir = c; //at the end of the loop lastDir will be overwritten with the index of the Current field
 	}
 }
-void printSolutionOnBoard(){
+void outputControl()
+{
+	char lastInput = 'y';
+	char outputMethod = 'y';
+	while (true)
+	{
+		char input = '\n';
+		puts("\n");
+		scanf("%c", &input);
+		clearBuffer();
+		if (input == 'q'){ break; }
+		// enter = repeat last input
+		if (input == '\n'){ input = lastInput; }
+		else{ lastInput = input; }
+
+		// chars to change outputmethod: y x c 
+		if (input == 'y' || input == 'x' || input == 'c'){ outputMethod = input; }
+		clearScreen();
+		puts("Press y for Classic Notation, x for interactive Board and c for Number Board\n");
+		switch (outputMethod)
+		{
+		case 'y':{printSolutionClassicNotation(input); break; }
+		case 'x':{printSolutionOnBoard(input); break; }
+		case 'c':{printField(); break; }
+		}
+
+	}
+}
+void printSolutionOnBoard(char c){
+
 	static int CurrentStep = 0;
 	int curX = 0, curY = length - 1;
 	for (int i = 0; i < fieldSize; i++)
@@ -540,56 +576,39 @@ void printSolutionOnBoard(){
 			break;
 		}
 	}
+	if (c == 'a' && CurrentStep > 0){ CurrentStep--; }
+	if (c == 'd' && CurrentStep < fieldSize){ CurrentStep++; }
+	puts("Use a(previous step) and d(next step) for navigating through the solution. Press enter after every input\n");
+	puts("Use q to exit\n");
 
-	char lastDir = 0;
-	while (true)
+	//Prints everything, that is displayed on top of the interactive field
+	printf("\t\t%c", 201);//corner top left
+	for (short i = 0; i < length; i++)
 	{
-		clearScreen();
-		puts("Use a(previous step) and d(next step) for navigating through the solution. Press enter after every input\n");
-		puts("Use q to exit\n");
-
-		//Prints everything, that is displayed on top of the interactive field
-		printf("\t\t%c", 201);//corner top left
-		for (short i = 0; i < length; i++)
-		{
-			printf("%c", 205);//top frame
-		}
-		printf("%c\n", 187);//corner top right
-		//Prints all the fields now, this is a two dimensional loop
-		for (short y = 0; y < length; y++)
-		{
-			printf("\t\t%c", 186);//left border
-			for (short x = 0; x < length; x++)
-			{
-				if (x == curX&&y == curY){ printf("%c", 2); continue; }
-				printf("%c", ((x + y*(length + 1)) & 1) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
-			}
-			printf("%c\n", 186);//right border
-		}
-		printf("\t\t%c", 200);//corner top left
-		for (short i = 0; i < length; i++)
-		{
-			printf("%c", 205);//top frame
-		}
-		printf("%c", 188);//corner top right
-		printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
-		char c;
-		scanf("%c", &c);//scans the User input, if he wants to go upwards downwards etc. or if he wants to quit.
-		clearBuffer();
-		if (c == '\n'){ c = lastDir; }
-		if (c == 'a' && CurrentStep > 0){ CurrentStep--; }
-		if (c == 'd' && CurrentStep < length){ CurrentStep++; }
-		if (c == 'q')
-		{
-			return;//quits the  input procedure and quits the application
-		}
-		//every wrong input will return in nothing to change
-		lastDir = c; //at the end of the loop lastDir will be overwritten with the index of the Current field
+		printf("%c", 205);//top frame
 	}
+	printf("%c\n", 187);//corner top right
+	//Prints all the fields now, this is a two dimensional loop
+	for (short y = 0; y < length; y++)
+	{
+		printf("\t\t%c", 186);//left border
+		for (short x = 0; x < length; x++)
+		{
+			if (x == curX&&y == curY){ printf("%c", 2); continue; }
+			printf("%c", ((x + y) & 1) ? 176 : 178);//If the current field to be printed is an even number, character 176 will be printed, if it is uneven, character 178 will be printed.
+		}
+		printf("%c\n", 186);//right border
+	}
+	printf("\t\t%c", 200);//corner top left
+	for (short i = 0; i < length; i++)
+	{
+		printf("%c", 205);//top frame
+	}
+	printf("%c", 188);//corner top right
+	printf("\n\tCurrent Position: %c%d", 'A' + curX, length - (curY + 1));
 }
-void printSolutionClassicNotation()
+void printSolutionClassicNotation(char c)
 {
-	clearScreen();
 	if (length > 25)//Disables classical stile Print of fields bigger than 25x25
 	{
 		puts("Classic notation is not supported for the selected size");
@@ -597,14 +616,39 @@ void printSolutionClassicNotation()
 	}
 	puts("Use a(previous steps) or d(next steps) to navigate\n");
 	static int currentStart = 0;
-	int stepsToPrint = 8;
-	for (int i = 0; i < stepsToPrint; i++)
+	int lastIndex = -1;
+	if (c == 'd'&&currentStart < (fieldSize - fieldSize % 8 - 8)){ currentStart += 8; }
+	if (c == 'a'&&currentStart >= 8){ currentStart -= 8; }
+	//print 8 steps
+	for (int stepsToPrint = 8; stepsToPrint >-1; stepsToPrint--)
 	{
-		if (currentStart == fieldArray[i])
+		// searches the field with the specific content
+		for (int i = 0; i < fieldSize; i++)
 		{
-			printf("%d.\t%c");
+			if (fieldArray[i] == currentStart)
+			{
+				if (lastIndex == -1)
+				{
+					lastIndex = i;
+					continue;
+				}
+				//curX = i / length;
+				//curY = i%length;rp
+				printf("%4d. %c%d - %c%d\n", 1 + currentStart++, 'A' + (lastIndex / length), (1 + length - lastIndex%length),
+					'A' + (i / length), (1 + length - i%length));
+				lastIndex = i;
+				break;
+			}
 		}
 	}
+	// if there are 25 steps at maximum, currentstart should be 24
+	if (currentStart % 8 > 0){
+		currentStart -= 8 + currentStart % 8;
+	}
+	else{
+		currentStart -= 8;
+	}
+
 }
 
 void clearScreen(){
